@@ -12,40 +12,9 @@ from rest_framework import permissions
 from location_management.models import Location
 from .serializers import UserSerializer
 
-class RegisterUser(APIView):
-    def post(self, request):
-        email = request.data.get('email')
-        name = request.data.get('name')
-        password = request.data.get('password')
-        role = request.data.get('role', 'sales-person')
-
-        if not email or not name or not password:
-            return Response({'error': 'Email, name, and password are required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            validate_email(email)
-        except ValidationError:
-            return Response({'error': 'Invalid email format'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if User.objects.filter(email=email).exists():
-            return Response({'error': 'User with this email already exists'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if role not in dict(User.ROLE_CHOICES):
-            return Response({'error': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            new_user = User.objects.create_user(
-                email=email,
-                name=name,
-                password=password,
-                role=role
-            )
-            return Response({
-                'message': 'User created successfully',
-                'user_id': new_user.user_id
-            }, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response({'error': f'Error in creating user: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+class TestAPIView(APIView):
+    def get(self, request):
+        return Response({'message': 'Hello, world!'}, status=status.HTTP_200_OK)
 
 class TokenObtainSerializer(TokenObtainPairSerializer):
     username_field = User.USERNAME_FIELD
