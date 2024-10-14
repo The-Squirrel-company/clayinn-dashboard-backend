@@ -54,8 +54,10 @@ class TokenObtainSerializer(TokenObtainPairSerializer):
         email = attrs.get('email')
         password = attrs.get('password')
         
+        print(email, password)
         if email and password:
             user = User.objects.filter(email=email).first()
+            print(user)
             if user and user.check_password(password):
                 refresh = self.get_token(user)
                 data = {
