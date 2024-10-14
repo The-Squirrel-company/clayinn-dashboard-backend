@@ -1,6 +1,7 @@
 import uuid
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+from location_management.models import Location
 
 def generate_user_id(role):
     return f"{role}-{uuid.uuid4().hex[:5]}"
@@ -37,6 +38,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='sales-person')
+    mobile = models.CharField(max_length=15, blank=True, null=True)
+    loc_id = models.ForeignKey('location_management.Location', to_field='loc_id', on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
 
     objects = CustomUserManager()
 

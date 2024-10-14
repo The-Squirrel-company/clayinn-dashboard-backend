@@ -8,6 +8,9 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from rest_framework import permissions
+from location_management.models import Location
+from .serializers import UserSerializer
 
 class RegisterUser(APIView):
     def post(self, request):
@@ -76,3 +79,72 @@ class TokenObtainSerializer(TokenObtainPairSerializer):
 
 class TokenView(TokenObtainPairView):
     serializer_class = TokenObtainSerializer
+
+class AdminPermission(permissions.IsAuthenticated):
+    def has_permission(self, request, view):
+        return super().has_permission(request, view) and request.user.role in ['super-admin', 'location-admin']
+
+class SalesPersonManagement(APIView):
+    permission_classes = [AdminPermission]
+
+    def post(self, request, loc_id):
+        try:
+            location = Location.objects.get(loc_id=loc_id)
+        except Location.DoesNotExist:
+            return Response({'error': 'Location not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'location-admin' and request.user.loc_id != location:
+            return Response({'error': 'You do not have permission to add sales persons to this location'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(role='sales-person', loc_id=location)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, loc_id):
+        try:
+            location = Location.objects.get(loc_id=loc_id)
+        except Location.DoesNotExist:
+            return Response({'error': 'Location not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'location-admin' and request.user.loc_id != location:
+            return Response({'error': 'You do not have permission to view sales persons for this location'}, status=status.HTTP_403_FORBIDDEN)
+
+        sales_persons = User.objects.filter(role='sales-person', loc_id=location)
+        serializer = UserSerializer(sales_persons, many=True)
+        return Response(serializer.data)
+
+class SalesPersonDetail(APIView):
+    permission_classes = [AdminPermission]
+
+    def get_object(self, user_id, loc_id):
+        try:
+            return User.objects.get(user_id=user_id, role='sales-person', loc_id__loc_id=loc_id)
+        except User.DoesNotExist:
+            return None
+
+    def put(self, request, loc_id, user_id):
+        sales_person = self.get_object(user_id, loc_id)
+        if not sales_person:
+            return Response({'error': 'Sales person not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'location-admin' and request.user.loc_id != sales_person.loc_id:
+            return Response({'error': 'You do not have permission to edit this sales person'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = UserSerializer(sales_person, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, loc_id, user_id):
+        sales_person = self.get_object(user_id, loc_id)
+        if not sales_person:
+            return Response({'error': 'Sales person not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'location-admin' and request.user.loc_id != sales_person.loc_id:
+            return Response({'error': 'You do not have permission to delete this sales person'}, status=status.HTTP_403_FORBIDDEN)
+
+        sales_person.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
