@@ -11,6 +11,7 @@ from django.core.validators import validate_email
 from rest_framework import permissions
 from location_management.models import Location
 from .serializers import UserSerializer
+from django.db import IntegrityError
 
 class TestAPIView(APIView):
     def get(self, request):
@@ -119,3 +120,31 @@ class SalesPersonDetail(APIView):
 
         sales_person.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class RegisterSuperAdmin(APIView):
+    def post(self, request):
+        # Hardcoded super admin details
+        super_admin_data = {
+            'email': 'admin@clayinn.in',
+            'name': 'Super Admin',
+            'password': 'admin',  # You should use a strong password in production
+            'role': 'super-admin'
+        }
+
+        try:
+            # Check if a super admin already exists
+            if User.objects.filter(role='super-admin').exists():
+                return Response({'error': 'A super admin already exists'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Create the super admin user
+            user = User.objects.create_user(**super_admin_data)
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+
+            return Response({'message': 'Super admin created successfully'}, status=status.HTTP_201_CREATED)
+
+        except IntegrityError:
+            return Response({'error': 'A user with this email already exists'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

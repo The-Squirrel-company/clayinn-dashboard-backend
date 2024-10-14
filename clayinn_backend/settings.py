@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-&nszy$%(6o4o(8n0y26kt7u36$eklqpr+#lsk(5wf%^1xlru7t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = 'RENDER' not in os.environ
 
-ALLOWED_HOSTS = ['clayinn.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['clayinn-dashboard-backend.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -57,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'clayinn_backend.urls'
@@ -148,3 +149,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'user_management.User'
+
+CORS_ALLOW_ALL_ORIGINS = True  # For development only. Use specific origins in production.
+CORS_ALLOW_CREDENTIALS = True
