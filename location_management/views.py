@@ -29,19 +29,24 @@ class LocationManagement(APIView):
             return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # Create the location first
+            location = Location.objects.create(name=name, address=address)
+
+            # Now create the location admin user
             admin_user = User.objects.create_user(
                 email=admin_email,
                 name=admin_name,
                 password=admin_password,
-                role='location-admin'
+                role='location-admin',
+                loc_id=location  # Set the foreign key to the newly created location
             )
-            location = Location.objects.create(
-                name=name,
-                address=address,
-                location_admin=admin_user
-            )
-            serializer = LocationSerializer(location)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            return Response({
+                'message': 'Location and location admin created successfully',
+                'location_id': location.loc_id,
+                'admin_id': admin_user.user_id
+            }, status=status.HTTP_201_CREATED)
+
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -78,7 +83,7 @@ class LocationManagement(APIView):
 
         try:
             location.delete()
-            return Response({'message': 'Location and associated admin user (if any) deleted successfully'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Location and associated venues and users deleted successfully'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': f'Error deleting location: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
