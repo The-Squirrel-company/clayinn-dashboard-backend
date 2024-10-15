@@ -88,7 +88,7 @@ class LocationManagement(APIView):
             return Response({'error': f'Error deleting location: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DeleteLocationAdmin(APIView):
-    permission_classes = [SuperAdminPermission]
+    permission_classes = [IsAuthenticated]
 
     def delete(self, request, loc_id):
         try:
@@ -96,22 +96,19 @@ class DeleteLocationAdmin(APIView):
         except Location.DoesNotExist:
             return Response({'error': 'Location not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        if not location.location_admin:
-            return Response({'error': 'This location does not have an admin'}, status=status.HTTP_400_BAD_REQUEST)
+        # Check if the user is allowed to delete an admin
+        if request.user.role == 'location-admin' and request.user.loc_id != location:
+            return Response({'error': 'You do not have permission to delete an admin for this location'}, status=status.HTTP_403_FORBIDDEN)
 
-        user_id = request.data.get('user_id')
-        if not user_id:
-            return Response({'error': 'user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        # Find the location admin user
+        try:
+            admin_user = User.objects.get(role='location-admin', loc_id=location)
+        except User.DoesNotExist:
+            return Response({'error': 'No location admin found for this location'}, status=status.HTTP_404_NOT_FOUND)
 
-        if location.location_admin.user_id != user_id:
-            return Response({'error': 'The provided user_id does not match the location admin'}, status=status.HTTP_400_BAD_REQUEST)
-
-        admin_user = location.location_admin
-        location.location_admin = None
-        location.save()
+        # Delete the location admin user
         admin_user.delete()
-
-        return Response({'message': 'Location admin deleted successfully'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Location admin deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
 class AddLocationAdmin(APIView):
     permission_classes = [SuperAdminPermission]
@@ -122,8 +119,9 @@ class AddLocationAdmin(APIView):
         except Location.DoesNotExist:
             return Response({'error': 'Location not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        if location.location_admin:
-            return Response({'error': 'This location already has an admin'}, status=status.HTTP_400_BAD_REQUEST)
+        # Check if the user is allowed to add an admin
+        if request.user.role == 'location-admin' and request.user.loc_id != location:
+            return Response({'error': 'You do not have permission to add an admin to this location'}, status=status.HTTP_403_FORBIDDEN)
 
         admin_name = request.data.get('admin_name')
         admin_email = request.data.get('admin_email')
@@ -145,10 +143,9 @@ class AddLocationAdmin(APIView):
                 email=admin_email,
                 name=admin_name,
                 password=admin_password,
-                role='location-admin'
+                role='location-admin',
+                loc_id=location  # Associate the new admin with the location
             )
-            location.location_admin = new_admin
-            location.save()
 
             return Response({
                 'message': 'Location admin added successfully',
