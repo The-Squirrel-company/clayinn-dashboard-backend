@@ -24,10 +24,8 @@ class TokenObtainSerializer(TokenObtainPairSerializer):
         email = attrs.get('email')
         password = attrs.get('password')
         
-        print(email, password)
         if email and password:
             user = User.objects.filter(email=email).first()
-            print(user)
             if user and user.check_password(password):
                 refresh = self.get_token(user)
                 data = {
@@ -47,6 +45,7 @@ class TokenObtainSerializer(TokenObtainPairSerializer):
         token["name"] = user.name
         token["email"] = user.email
         token['role'] = user.role
+        token['loc_id'] = user.loc_id.loc_id if user.loc_id else None  # Add loc_id to the token
         return token
 
 class TokenView(TokenObtainPairView):

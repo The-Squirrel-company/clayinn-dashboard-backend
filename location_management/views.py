@@ -30,7 +30,8 @@ class LocationManagement(APIView):
 
         try:
             # Create the location first
-            location = Location.objects.create(name=name, address=address)
+            location = Location(name=name, address=address)
+            location.save()  # This will generate loc_id using the overridden save method
 
             # Now create the location admin user
             admin_user = User.objects.create_user(
