@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'user_management',
     'location_management',
     'venue_management',
+    'leads_management'
 ]
 
 MIDDLEWARE = [

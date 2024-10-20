@@ -22,4 +22,5 @@ urlpatterns = [
     path('user-management/', include('user_management.urls')),
     path('location-management/', include('location_management.urls')),
     path('venue-management/', include('venue_management.urls')),
+    path('leads_management/', include('leads_management.urls'))
 ]
