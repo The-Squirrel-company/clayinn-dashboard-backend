@@ -1,8 +1,8 @@
 from django.urls import path
-from .views import LeadListView, LeadCreateView, LeadUpdateView
+from .views import LeadListView, LeadCreateView, LeadDetailView
 
 urlpatterns = [
-    path('leads/', LeadListView.as_view(), name='lead-list'),
+    path('leads/<str:location_id>/', LeadListView.as_view(), name='lead-list'),
     path('leads/create/', LeadCreateView.as_view(), name='lead-create'),
-    path('leads/<int:lead_number>/update/', LeadUpdateView.as_view(), name='lead-update'),
+    path('leads/detail/<int:lead_number>/', LeadDetailView.as_view(), name='lead-detail'),
 ]

@@ -1,9 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from .models import Lead
-from .serializers import LeadSerializer
+from .serializers import LeadSerializer, LeadListSerializer
+from location_management.models import Location
 
 # Create your views here.
 
@@ -13,18 +14,27 @@ class LeadPagination(PageNumberPagination):
     max_page_size = 100
 
 class LeadListView(generics.ListAPIView):
-    serializer_class = LeadSerializer
+    serializer_class = LeadListSerializer
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = LeadPagination
 
     def get_queryset(self):
         user = self.request.user
+        location_id = self.kwargs.get('location_id')
+        
+        location = get_object_or_404(Location, loc_id=location_id)
+        
+        queryset = Lead.objects.filter(location=location)
+        
         if user.role == 'super-admin':
-            return Lead.objects.all()
+            return queryset
         elif user.role == 'location-admin':
-            return Lead.objects.filter(venue__location=user.loc_id)
+            if user.loc_id == location.loc_id:
+                return queryset
+            else:
+                return Lead.objects.none()
         elif user.role == 'sales-person':
-            return Lead.objects.filter(sales_person=user)
+            return queryset.filter(sales_person=user)
         return Lead.objects.none()
 
 class LeadCreateView(generics.CreateAPIView):
@@ -34,7 +44,14 @@ class LeadCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(sales_person=self.request.user)
 
-class LeadUpdateView(generics.UpdateAPIView):
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={'sales_person': request.user})
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+class LeadDetailView(generics.RetrieveUpdateAPIView):
     queryset = Lead.objects.all()
     serializer_class = LeadSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -45,7 +62,7 @@ class LeadUpdateView(generics.UpdateAPIView):
         if user.role == 'super-admin':
             return Lead.objects.all()
         elif user.role == 'location-admin':
-            return Lead.objects.filter(venue__location=user.loc_id)
+            return Lead.objects.filter(location=user.loc_id)
         elif user.role == 'sales-person':
             return Lead.objects.filter(sales_person=user)
         return Lead.objects.none()
@@ -53,6 +70,11 @@ class LeadUpdateView(generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        
+        # Check if the lead status is already 'closed-won'
+        if instance.lead_status == 'closed-won' and request.user.role == 'sales-person':
+            return Response({"detail": "Sales person cannot update a closed-won lead."}, status=status.HTTP_403_FORBIDDEN)
+        
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)

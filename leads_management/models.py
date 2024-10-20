@@ -1,6 +1,7 @@
 from django.db import models
 from venue_management.models import Venue
 from user_management.models import User
+from location_management.models import Location
 
 # Create your models here.
 
@@ -38,24 +39,43 @@ class Lead(models.Model):
     followup = models.DateField(null=True, blank=True)
     remark = models.TextField(blank=True)
     email = models.EmailField(blank=True)
-    sales_person = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='leads')
+    location = models.ForeignKey('location_management.Location', on_delete=models.CASCADE)
+    sales_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leads')
 
 class BaseOccasion(models.Model):
+    YES_NO_NUMBER_CHOICES = [
+        ('yes', 'Yes'),
+        ('no', 'No'),
+        ('number', 'Number'),
+    ]
+    
     date_of_function = models.DateField()
     day = models.CharField(max_length=10)
+    
+    lunch_min_pax_type = models.CharField(max_length=6, choices=YES_NO_NUMBER_CHOICES, default='no')
+    lunch_min_pax_value = models.IntegerField(null=True, blank=True)
+    
+    hi_tea_min_pax_type = models.CharField(max_length=6, choices=YES_NO_NUMBER_CHOICES, default='no')
+    hi_tea_min_pax_value = models.IntegerField(null=True, blank=True)
+    
+    dinner_min_pax_type = models.CharField(max_length=6, choices=YES_NO_NUMBER_CHOICES, default='no')
+    dinner_min_pax_value = models.IntegerField(null=True, blank=True)
+    
+    dj_type = models.CharField(max_length=6, choices=YES_NO_NUMBER_CHOICES, default='no')
+    dj_value = models.IntegerField(null=True, blank=True)
+    
+    decor_type = models.CharField(max_length=6, choices=YES_NO_NUMBER_CHOICES, default='no')
+    decor_value = models.IntegerField(null=True, blank=True)
+    
+    liquor_type = models.CharField(max_length=6, choices=YES_NO_NUMBER_CHOICES, default='no')
+    liquor_value = models.IntegerField(null=True, blank=True)
+    
     total = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         abstract = True
 
 class StandardOccasion(BaseOccasion):
-    lunch_min_pax = models.IntegerField(null=True, blank=True)
-    hi_tea_min_pax = models.IntegerField(null=True, blank=True)
-    dinner_min_pax = models.IntegerField(null=True, blank=True)
-    dj = models.BooleanField(default=False)
-    decor = models.BooleanField(default=False)
-    liquor = models.BooleanField(default=False)
-
     class Meta:
         abstract = True
 
@@ -76,21 +96,20 @@ class Mehndi(StandardOccasion):
 
 class Wedding(StandardOccasion):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='weddings')
-    vedi = models.BooleanField(default=False)
+    vedi_type = models.CharField(max_length=6, choices=BaseOccasion.YES_NO_NUMBER_CHOICES, default='no')
+    vedi_value = models.IntegerField(null=True, blank=True)
 
 class Reception(StandardOccasion):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='receptions')
-    vedi = models.BooleanField(default=False)
 
 class Rooms(BaseOccasion):
-    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='rooms')
     number_of_pax = models.IntegerField()
     number_of_rooms = models.IntegerField()
     plan = models.CharField(max_length=255)
 
 class Corporate(StandardOccasion):
-    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='corporates')
-    vedi = models.BooleanField(default=False)
+    vedi_type = models.CharField(max_length=6, choices=BaseOccasion.YES_NO_NUMBER_CHOICES, default='no')
+    vedi_value = models.IntegerField(null=True, blank=True)
 
 class Visit(models.Model):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='visits')

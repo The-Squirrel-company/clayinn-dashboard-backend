@@ -1,50 +1,61 @@
 from rest_framework import serializers
 from .models import Lead, Engagement, Sagan, Roka, Haldi, Mehndi, Wedding, Reception, Rooms, Corporate, Visit, PostCallStatus
+from user_management.serializers import UserSerializer
+from venue_management.serializers import VenueSerializer
+from location_management.serializers import LocationSerializer
 
-class EngagementSerializer(serializers.ModelSerializer):
+class BaseOccasionSerializer(serializers.ModelSerializer):
+    def validate(self, data):
+        for field in ['lunch_min_pax', 'hi_tea_min_pax', 'dinner_min_pax', 'dj', 'decor', 'liquor']:
+            type_field = f'{field}_type'
+            value_field = f'{field}_value'
+            if data.get(type_field) == 'number' and data.get(value_field) is None:
+                raise serializers.ValidationError(f"{field} value is required when type is 'number'")
+        return data
+
     class Meta:
+        abstract = True
+        fields = ['date_of_function', 'day', 'lunch_min_pax_type', 'lunch_min_pax_value', 'hi_tea_min_pax_type', 'hi_tea_min_pax_value', 'dinner_min_pax_type', 'dinner_min_pax_value', 'dj_type', 'dj_value', 'decor_type', 'decor_value', 'liquor_type', 'liquor_value', 'total']
+
+class EngagementSerializer(BaseOccasionSerializer):
+    class Meta(BaseOccasionSerializer.Meta):
         model = Engagement
-        exclude = ['lead']
 
-class SaganSerializer(serializers.ModelSerializer):
-    class Meta:
+class SaganSerializer(BaseOccasionSerializer):
+    class Meta(BaseOccasionSerializer.Meta):
         model = Sagan
-        exclude = ['lead']
 
-class RokaSerializer(serializers.ModelSerializer):
-    class Meta:
+class RokaSerializer(BaseOccasionSerializer):
+    class Meta(BaseOccasionSerializer.Meta):
         model = Roka
-        exclude = ['lead']
 
-class HaldiSerializer(serializers.ModelSerializer):
-    class Meta:
+class HaldiSerializer(BaseOccasionSerializer):
+    class Meta(BaseOccasionSerializer.Meta):
         model = Haldi
-        exclude = ['lead']
 
-class MehndiSerializer(serializers.ModelSerializer):
-    class Meta:
+class MehndiSerializer(BaseOccasionSerializer):
+    class Meta(BaseOccasionSerializer.Meta):
         model = Mehndi
-        exclude = ['lead']
 
-class WeddingSerializer(serializers.ModelSerializer):
-    class Meta:
+class WeddingSerializer(BaseOccasionSerializer):
+    class Meta(BaseOccasionSerializer.Meta):
         model = Wedding
-        exclude = ['lead']
+        fields = BaseOccasionSerializer.Meta.fields + ['vedi_type', 'vedi_value']
 
-class ReceptionSerializer(serializers.ModelSerializer):
-    class Meta:
+class ReceptionSerializer(BaseOccasionSerializer):
+    class Meta(BaseOccasionSerializer.Meta):
         model = Reception
-        exclude = ['lead']
+        fields = BaseOccasionSerializer.Meta.fields + ['vedi_type', 'vedi_value']
 
 class RoomsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rooms
-        exclude = ['lead']
+        fields = ['date_of_function', 'day', 'number_of_pax', 'number_of_rooms', 'plan', 'total']
 
-class CorporateSerializer(serializers.ModelSerializer):
-    class Meta:
+class CorporateSerializer(BaseOccasionSerializer):
+    class Meta(BaseOccasionSerializer.Meta):
         model = Corporate
-        exclude = ['lead']
+        fields = BaseOccasionSerializer.Meta.fields + ['vedi_type', 'vedi_value']
 
 class VisitSerializer(serializers.ModelSerializer):
     class Meta:
@@ -68,10 +79,17 @@ class LeadSerializer(serializers.ModelSerializer):
     corporates = CorporateSerializer(many=True, required=False)
     visits = VisitSerializer(many=True, required=False)
     post_call_statuses = PostCallStatusSerializer(many=True, required=False)
+    sales_person = UserSerializer(read_only=True)
+    location = LocationSerializer(read_only=True)
 
     class Meta:
         model = Lead
         fields = '__all__'
+
+    def validate(self, data):
+        if not self.instance and 'sales_person' not in self.context:
+            raise serializers.ValidationError("Sales person is required")
+        return data
 
     def create(self, validated_data):
         occasions = {
@@ -142,3 +160,10 @@ class LeadSerializer(serializers.ModelSerializer):
             PostCallStatus.objects.create(lead=instance, **post_call_status_data)
 
         return instance
+
+class LeadListSerializer(serializers.ModelSerializer):
+    location = LocationSerializer(read_only=True)
+
+    class Meta:
+        model = Lead
+        fields = ['hostname', 'lead_number', 'lead_entry_date', 'mobile', 'followup', 'email', 'lead_status', 'venue', 'call_status', 'location']
