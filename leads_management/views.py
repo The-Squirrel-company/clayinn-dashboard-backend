@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from rest_framework import viewsets, generics, permissions, status
+from rest_framework import viewsets, generics, permissions, status, serializers
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from .models import Lead
@@ -45,6 +45,7 @@ class LeadCreateView(generics.CreateAPIView):
         serializer.save(sales_person=self.request.user)
 
     def create(self, request, *args, **kwargs):
+        print(request.data)
         serializer = self.get_serializer(data=request.data, context={'sales_person': request.user})
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)

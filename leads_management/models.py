@@ -33,13 +33,13 @@ class Lead(models.Model):
     lead_entry_date = models.DateTimeField(auto_now_add=True)
     hostname = models.CharField(max_length=255)
     mobile = models.CharField(max_length=15)
-    venue = models.ForeignKey(Venue, on_delete=models.CASCADE)
+    venue_id = models.ForeignKey(Venue, on_delete=models.CASCADE)
     lead_status = models.CharField(max_length=20, choices=LEAD_STATUS_CHOICES, default='untouched')
     call_status = models.CharField(max_length=20, choices=CALL_STATUS_CHOICES, default='not_yet_call')
     followup = models.DateField(null=True, blank=True)
     remark = models.TextField(blank=True)
     email = models.EmailField(blank=True)
-    location = models.ForeignKey('location_management.Location', on_delete=models.CASCADE)
+    location_id = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='leads')
     sales_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leads')
 
 class BaseOccasion(models.Model):
