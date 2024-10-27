@@ -168,6 +168,54 @@ class LeadSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Sales person is required")
         return data
 
+    def update(self, instance, validated_data):
+        # Update the Lead instance fields
+        instance.hostname = validated_data.get('hostname', instance.hostname)
+        instance.mobile = validated_data.get('mobile', instance.mobile)
+        instance.lead_status = validated_data.get('lead_status', instance.lead_status)
+        instance.call_status = validated_data.get('call_status', instance.call_status)
+        instance.followup = validated_data.get('followup', instance.followup)
+        instance.remark = validated_data.get('remark', instance.remark)
+        instance.email = validated_data.get('email', instance.email)
+        instance.save()
+
+        # Handle nested updates for engagements, weddings, etc.
+        self.update_nested_fields(instance, validated_data)
+
+        return instance
+
+    def update_nested_fields(self, lead, validated_data):
+        if 'engagements' in validated_data:
+            engagements_data = validated_data.pop('engagements')
+            # Update or create engagements
+            for engagement_data in engagements_data:
+                engagement_id = engagement_data.get('id', None)
+                if engagement_id:
+                    # Update existing engagement
+                    engagement = Engagement.objects.get(id=engagement_id, lead=lead)
+                    for attr, value in engagement_data.items():
+                        setattr(engagement, attr, value)
+                    engagement.save()
+                else:
+                    # Create new engagement
+                    Engagement.objects.create(lead=lead, **engagement_data)
+
+        # Repeat similar logic for other nested serializers (weddings, corporates, etc.)
+        # Example for weddings:
+        if 'weddings' in validated_data:
+            weddings_data = validated_data.pop('weddings')
+            for wedding_data in weddings_data:
+                wedding_id = wedding_data.get('id', None)
+                if wedding_id:
+                    wedding = Wedding.objects.get(id=wedding_id, lead=lead)
+                    for attr, value in wedding_data.items():
+                        setattr(wedding, attr, value)
+                    wedding.save()
+                else:
+                    Wedding.objects.create(lead=lead, **wedding_data)
+
+        # Repeat for corporates, sagans, rokos, haldis, mehndis, receptions, and rooms
+
 class LeadListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lead

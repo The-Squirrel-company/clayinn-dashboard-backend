@@ -87,3 +87,14 @@ class LeadDetailView(generics.RetrieveUpdateAPIView):
     def perform_update(self, serializer):
         serializer.save()
 
+    def delete(self, request, *args, **kwargs):
+        # Check if the user is a location admin
+        if request.user.role not in ['location-admin', 'super-admin']:
+            return Response({"detail": "You do not have permission to delete this lead."}, status=status.HTTP_403_FORBIDDEN)
+
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        instance.delete()
