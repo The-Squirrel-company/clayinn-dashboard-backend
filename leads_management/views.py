@@ -24,7 +24,7 @@ class LeadListView(generics.ListAPIView):
         
         location = get_object_or_404(Location, loc_id=location_id)
         
-        queryset = Lead.objects.filter(location=location)
+        queryset = Lead.objects.filter(location_id=location)
         
         if user.role == 'super-admin':
             return queryset
@@ -45,7 +45,10 @@ class LeadCreateView(generics.CreateAPIView):
         serializer.save(sales_person=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        print(request.data)
+        print("here")
+        print(request.data)        
+        print("here2")
+
         serializer = self.get_serializer(data=request.data, context={'sales_person': request.user})
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -63,7 +66,7 @@ class LeadDetailView(generics.RetrieveUpdateAPIView):
         if user.role == 'super-admin':
             return Lead.objects.all()
         elif user.role == 'location-admin':
-            return Lead.objects.filter(location=user.loc_id)
+            return Lead.objects.filter(location_id=user.loc_id)
         elif user.role == 'sales-person':
             return Lead.objects.filter(sales_person=user)
         return Lead.objects.none()

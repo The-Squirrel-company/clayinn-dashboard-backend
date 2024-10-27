@@ -3,8 +3,6 @@ from venue_management.models import Venue
 from user_management.models import User
 from location_management.models import Location
 
-# Create your models here.
-
 class Lead(models.Model):
     LEAD_STATUS_CHOICES = [
         ('untouched', 'Untouched'),
@@ -33,13 +31,13 @@ class Lead(models.Model):
     lead_entry_date = models.DateTimeField(auto_now_add=True)
     hostname = models.CharField(max_length=255)
     mobile = models.CharField(max_length=15)
-    venue_id = models.ForeignKey(Venue, on_delete=models.CASCADE)
+    venue_id = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name='leads')  # ForeignKey to Venue
     lead_status = models.CharField(max_length=20, choices=LEAD_STATUS_CHOICES, default='untouched')
     call_status = models.CharField(max_length=20, choices=CALL_STATUS_CHOICES, default='not_yet_call')
     followup = models.DateField(null=True, blank=True)
     remark = models.TextField(blank=True)
     email = models.EmailField(blank=True)
-    location_id = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='leads')
+    location_id = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='leads')  # ForeignKey to Location
     sales_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leads')
 
 class BaseOccasion(models.Model):

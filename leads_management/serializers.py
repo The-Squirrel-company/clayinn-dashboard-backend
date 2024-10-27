@@ -3,6 +3,8 @@ from .models import Lead, Engagement, Sagan, Roka, Haldi, Mehndi, Wedding, Recep
 from user_management.serializers import UserSerializer
 from venue_management.serializers import VenueSerializer
 from location_management.serializers import LocationSerializer
+from venue_management.models import Venue
+from location_management.models import Location
 
 class BaseOccasionSerializer(serializers.ModelSerializer):
     def validate(self, data):
@@ -80,90 +82,61 @@ class LeadSerializer(serializers.ModelSerializer):
     visits = VisitSerializer(many=True, required=False)
     post_call_statuses = PostCallStatusSerializer(many=True, required=False)
     sales_person = UserSerializer(read_only=True)
-    location = LocationSerializer(read_only=True)
+    venue_id = serializers.CharField()  # Accepts the string ID
+    location_id = serializers.CharField()  # Accepts the string ID
 
     class Meta:
         model = Lead
         fields = '__all__'
+
+    def create(self, validated_data):
+        # Get the venue and location IDs from the validated data
+        venue_id = validated_data.pop('venue_id')
+        location_id = validated_data.pop('location_id')
+
+        # Look up the Venue and Location instances
+        venue_instance = Venue.objects.get(venue_id=venue_id)  # Assuming venue_id is the field name in Venue
+        location_instance = Location.objects.get(loc_id=location_id)  # Assuming loc_id is the field name in Location
+
+        # Create the Lead instance with the actual instances
+        lead = Lead.objects.create(
+            **validated_data,
+            venue_id=venue_instance,
+            location_id=location_instance
+        )
+        return lead
+
+    def update(self, instance, validated_data):
+        # Get the venue and location IDs from the validated data
+        venue_id = validated_data.pop('venue_id', None)
+        location_id = validated_data.pop('location_id', None)
+
+        # Look up the Venue and Location instances if provided
+        if venue_id:
+            venue_instance = Venue.objects.get(venue_id=venue_id)
+            instance.venue_id = venue_instance
+
+        if location_id:
+            location_instance = Location.objects.get(loc_id=location_id)
+            instance.location_id = location_instance
+
+        # Update other fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
     def validate(self, data):
         if not self.instance and 'sales_person' not in self.context:
             raise serializers.ValidationError("Sales person is required")
         return data
 
-    def create(self, validated_data):
-        occasions = {
-            'engagements': validated_data.pop('engagements', []),
-            'sagans': validated_data.pop('sagans', []),
-            'rokas': validated_data.pop('rokas', []),
-            'haldis': validated_data.pop('haldis', []),
-            'mehndis': validated_data.pop('mehndis', []),
-            'weddings': validated_data.pop('weddings', []),
-            'receptions': validated_data.pop('receptions', []),
-            'rooms': validated_data.pop('rooms', []),
-            'corporates': validated_data.pop('corporates', []),
-        }
-        visits_data = validated_data.pop('visits', [])
-        post_call_statuses_data = validated_data.pop('post_call_statuses', [])
-
-        lead = Lead.objects.create(**validated_data)
-
-        for occasion_type, occasion_data_list in occasions.items():
-            for occasion_data in occasion_data_list:
-                getattr(lead, occasion_type).create(**occasion_data)
-
-        for visit_data in visits_data:
-            Visit.objects.create(lead=lead, **visit_data)
-
-        for post_call_status_data in post_call_statuses_data:
-            PostCallStatus.objects.create(lead=lead, **post_call_status_data)
-
-        return lead
-
-    def update(self, instance, validated_data):
-        occasions = {
-            'engagements': validated_data.pop('engagements', []),
-            'sagans': validated_data.pop('sagans', []),
-            'rokas': validated_data.pop('rokas', []),
-            'haldis': validated_data.pop('haldis', []),
-            'mehndis': validated_data.pop('mehndis', []),
-            'weddings': validated_data.pop('weddings', []),
-            'receptions': validated_data.pop('receptions', []),
-            'rooms': validated_data.pop('rooms', []),
-            'corporates': validated_data.pop('corporates', []),
-        }
-        visits_data = validated_data.pop('visits', [])
-        post_call_statuses_data = validated_data.pop('post_call_statuses', [])
-
-        instance = super().update(instance, validated_data)
-
-        instance.engagements.all().delete()
-        instance.sagans.all().delete()
-        instance.rokas.all().delete()
-        instance.haldis.all().delete()
-        instance.mehndis.all().delete()
-        instance.weddings.all().delete()
-        instance.receptions.all().delete()
-        instance.rooms.all().delete()
-        instance.corporates.all().delete()
-        instance.visits.all().delete()
-        instance.post_call_statuses.all().delete()
-
-        for occasion_type, occasion_data_list in occasions.items():
-            for occasion_data in occasion_data_list:
-                getattr(instance, occasion_type).create(**occasion_data)
-
-        for visit_data in visits_data:
-            Visit.objects.create(lead=instance, **visit_data)
-
-        for post_call_status_data in post_call_statuses_data:
-            PostCallStatus.objects.create(lead=instance, **post_call_status_data)
-
-        return instance
-
 class LeadListSerializer(serializers.ModelSerializer):
-    location = LocationSerializer(read_only=True)
+    sales_person = UserSerializer(read_only=True)
+    venue_id = serializers.CharField(source='venue_id.venue_id')  # Assuming venue_id is a string
+    location_id = serializers.CharField(source='location_id.loc_id')  # Assuming loc_id is a string
 
     class Meta:
         model = Lead
-        fields = ['hostname', 'lead_number', 'lead_entry_date', 'mobile', 'followup', 'email', 'lead_status', 'venue', 'call_status', 'location']
+        fields = ['lead_number', 'hostname', 'mobile', 'venue_id', 'location_id', 'lead_status', 'call_status', 'followup', 'remark', 'email', 'sales_person']
