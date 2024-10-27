@@ -1,131 +1,167 @@
 from rest_framework import serializers
-from .models import Lead, Engagement, Sagan, Roka, Haldi, Mehndi, Wedding, Reception, Rooms, Corporate, Visit, PostCallStatus
+from .models import Lead, Engagement, Wedding, Corporate, Mehndi, Sagan, Roka, Reception, Rooms, Haldi
 from user_management.serializers import UserSerializer
-from venue_management.serializers import VenueSerializer
-from location_management.serializers import LocationSerializer
 from venue_management.models import Venue
 from location_management.models import Location
 
-class BaseOccasionSerializer(serializers.ModelSerializer):
-    def validate(self, data):
-        for field in ['lunch_min_pax', 'hi_tea_min_pax', 'dinner_min_pax', 'dj', 'decor', 'liquor']:
-            type_field = f'{field}_type'
-            value_field = f'{field}_value'
-            if data.get(type_field) == 'number' and data.get(value_field) is None:
-                raise serializers.ValidationError(f"{field} value is required when type is 'number'")
-        return data
-
+class EngagementSerializer(serializers.ModelSerializer):
     class Meta:
-        abstract = True
-        fields = ['date_of_function', 'day', 'lunch_min_pax_type', 'lunch_min_pax_value', 'hi_tea_min_pax_type', 'hi_tea_min_pax_value', 'dinner_min_pax_type', 'dinner_min_pax_value', 'dj_type', 'dj_value', 'decor_type', 'decor_value', 'liquor_type', 'liquor_value', 'total']
-
-class EngagementSerializer(BaseOccasionSerializer):
-    class Meta(BaseOccasionSerializer.Meta):
         model = Engagement
+        fields = ['date_of_function', 'day', 'lunch_min_pax_type', 'lunch_min_pax_value', 
+                  'hi_tea_min_pax_type', 'hi_tea_min_pax_value', 'dinner_min_pax_type', 
+                  'dinner_min_pax_value', 'dj_type', 'dj_value', 'decor_type', 'decor_value', 
+                  'liquor_type', 'liquor_value', 'total']
 
-class SaganSerializer(BaseOccasionSerializer):
-    class Meta(BaseOccasionSerializer.Meta):
-        model = Sagan
-
-class RokaSerializer(BaseOccasionSerializer):
-    class Meta(BaseOccasionSerializer.Meta):
-        model = Roka
-
-class HaldiSerializer(BaseOccasionSerializer):
-    class Meta(BaseOccasionSerializer.Meta):
-        model = Haldi
-
-class MehndiSerializer(BaseOccasionSerializer):
-    class Meta(BaseOccasionSerializer.Meta):
-        model = Mehndi
-
-class WeddingSerializer(BaseOccasionSerializer):
-    class Meta(BaseOccasionSerializer.Meta):
+class WeddingSerializer(serializers.ModelSerializer):
+    class Meta:
         model = Wedding
-        fields = BaseOccasionSerializer.Meta.fields + ['vedi_type', 'vedi_value']
+        fields = ['date_of_function', 'day', 'lunch_min_pax_type', 'lunch_min_pax_value', 
+                  'hi_tea_min_pax_type', 'hi_tea_min_pax_value', 'dinner_min_pax_type', 
+                  'dinner_min_pax_value', 'dj_type', 'dj_value', 'decor_type', 'decor_value', 
+                  'liquor_type', 'liquor_value', 'total', 'vedi_type', 'vedi_value']
 
-class ReceptionSerializer(BaseOccasionSerializer):
-    class Meta(BaseOccasionSerializer.Meta):
+class CorporateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Corporate
+        fields = ['date_of_function', 'day', 'lunch_min_pax_type', 'lunch_min_pax_value', 
+                  'hi_tea_min_pax_type', 'hi_tea_min_pax_value', 'dinner_min_pax_type', 
+                  'dinner_min_pax_value', 'dj_type', 'dj_value', 'decor_type', 'decor_value', 
+                  'liquor_type', 'liquor_value', 'total']
+
+class SaganSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sagan
+        fields = ['date_of_function', 'day', 'lunch_min_pax_type', 'lunch_min_pax_value', 
+                  'hi_tea_min_pax_type', 'hi_tea_min_pax_value', 'dinner_min_pax_type', 
+                  'dinner_min_pax_value', 'dj_type', 'dj_value', 'decor_type', 'decor_value', 
+                  'liquor_type', 'liquor_value', 'total']
+
+class RokaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Roka
+        fields = ['date_of_function', 'day', 'lunch_min_pax_type', 'lunch_min_pax_value', 
+                  'hi_tea_min_pax_type', 'hi_tea_min_pax_value', 'dinner_min_pax_type', 
+                  'dinner_min_pax_value', 'dj_type', 'dj_value', 'decor_type', 'decor_value', 
+                  'liquor_type', 'liquor_value', 'total']
+
+class HaldiSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Haldi
+        fields = ['date_of_function', 'day', 'lunch_min_pax_type', 'lunch_min_pax_value', 
+                  'hi_tea_min_pax_type', 'hi_tea_min_pax_value', 'dinner_min_pax_type', 
+                  'dinner_min_pax_value', 'dj_type', 'dj_value', 'decor_type', 'decor_value', 
+                  'liquor_type', 'liquor_value', 'total']
+
+class MehndiSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Mehndi
+        fields = ['date_of_function', 'day', 'lunch_min_pax_type', 'lunch_min_pax_value', 
+                  'hi_tea_min_pax_type', 'hi_tea_min_pax_value', 'dinner_min_pax_type', 
+                  'dinner_min_pax_value', 'dj_type', 'dj_value', 'decor_type', 'decor_value', 
+                  'liquor_type', 'liquor_value', 'total']
+
+class ReceptionSerializer(serializers.ModelSerializer):
+    class Meta:
         model = Reception
-        fields = BaseOccasionSerializer.Meta.fields + ['vedi_type', 'vedi_value']
+        fields = ['date_of_function', 'day', 'lunch_min_pax_type', 'lunch_min_pax_value', 
+                  'hi_tea_min_pax_type', 'hi_tea_min_pax_value', 'dinner_min_pax_type', 
+                  'dinner_min_pax_value', 'dj_type', 'dj_value', 'decor_type', 'decor_value', 
+                  'liquor_type', 'liquor_value', 'total']
 
 class RoomsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rooms
-        fields = ['date_of_function', 'day', 'number_of_pax', 'number_of_rooms', 'plan', 'total']
-
-class CorporateSerializer(BaseOccasionSerializer):
-    class Meta(BaseOccasionSerializer.Meta):
-        model = Corporate
-        fields = BaseOccasionSerializer.Meta.fields + ['vedi_type', 'vedi_value']
-
-class VisitSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Visit
-        exclude = ['lead']
-
-class PostCallStatusSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PostCallStatus
-        exclude = ['lead']
+        fields = ['number_of_pax', 'number_of_rooms', 'plan']
 
 class LeadSerializer(serializers.ModelSerializer):
     engagements = EngagementSerializer(many=True, required=False)
+    weddings = WeddingSerializer(many=True, required=False)
+    corporates = CorporateSerializer(many=True, required=False)
     sagans = SaganSerializer(many=True, required=False)
-    rokas = RokaSerializer(many=True, required=False)
+    rokos = RokaSerializer(many=True, required=False)
     haldis = HaldiSerializer(many=True, required=False)
     mehndis = MehndiSerializer(many=True, required=False)
-    weddings = WeddingSerializer(many=True, required=False)
     receptions = ReceptionSerializer(many=True, required=False)
     rooms = RoomsSerializer(many=True, required=False)
-    corporates = CorporateSerializer(many=True, required=False)
-    visits = VisitSerializer(many=True, required=False)
-    post_call_statuses = PostCallStatusSerializer(many=True, required=False)
+
     sales_person = UserSerializer(read_only=True)
-    venue_id = serializers.CharField()  # Accepts the string ID
-    location_id = serializers.CharField()  # Accepts the string ID
+    venue_id = serializers.CharField()
+    location_id = serializers.CharField()
 
     class Meta:
         model = Lead
         fields = '__all__'
 
     def create(self, validated_data):
-        # Get the venue and location IDs from the validated data
         venue_id = validated_data.pop('venue_id')
         location_id = validated_data.pop('location_id')
 
-        # Look up the Venue and Location instances
-        venue_instance = Venue.objects.get(venue_id=venue_id)  # Assuming venue_id is the field name in Venue
-        location_instance = Location.objects.get(loc_id=location_id)  # Assuming loc_id is the field name in Location
-
-        # Create the Lead instance with the actual instances
+        # Directly assign the IDs to the foreign key fields
         lead = Lead.objects.create(
-            **validated_data,
-            venue_id=venue_instance,
-            location_id=location_instance
+            sales_person=self.context['sales_person'],
+            hostname=validated_data['hostname'],
+            mobile=validated_data['mobile'],
+            venue_id_id=venue_id,  # Use venue_id_id to directly assign the ID
+            location_id_id=location_id,  # Use location_id_id to directly assign the ID
+            lead_status=validated_data.get('lead_status', 'untouched'),
+            call_status=validated_data.get('call_status', 'not_yet_call'),
+            followup=validated_data.get('followup'),
+            remark=validated_data.get('remark'),
+            email=validated_data.get('email')
         )
+
+        print("Lead created with lead number:", lead.lead_number)
+
+        # Handle occasions
+        self.create_occasions(lead, validated_data)
+
         return lead
 
-    def update(self, instance, validated_data):
-        # Get the venue and location IDs from the validated data
-        venue_id = validated_data.pop('venue_id', None)
-        location_id = validated_data.pop('location_id', None)
+    def create_occasions(self, lead, validated_data):
+        if 'engagements' in validated_data:
+            engagements_data = validated_data.pop('engagements')
+            for engagement_data in engagements_data:
+                Engagement.objects.create(lead=lead, **engagement_data)
 
-        # Look up the Venue and Location instances if provided
-        if venue_id:
-            venue_instance = Venue.objects.get(venue_id=venue_id)
-            instance.venue_id = venue_instance
+        if 'weddings' in validated_data:
+            weddings_data = validated_data.pop('weddings')
+            for wedding_data in weddings_data:
+                Wedding.objects.create(lead=lead, **wedding_data)
 
-        if location_id:
-            location_instance = Location.objects.get(loc_id=location_id)
-            instance.location_id = location_instance
+        if 'corporates' in validated_data:
+            corporates_data = validated_data.pop('corporates')
+            for corporate_data in corporates_data:
+                Corporate.objects.create(lead=lead, **corporate_data)
 
-        # Update other fields
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
+        if 'sagans' in validated_data:
+            sagans_data = validated_data.pop('sagans')
+            for sagan_data in sagans_data:
+                Sagan.objects.create(lead=lead, **sagan_data)
 
-        instance.save()
-        return instance
+        if 'rokos' in validated_data:
+            rokos_data = validated_data.pop('rokos')
+            for roka_data in rokos_data:
+                Roka.objects.create(lead=lead, **roka_data)
+
+        if 'haldis' in validated_data:
+            haldis_data = validated_data.pop('haldis')
+            for haldi_data in haldis_data:
+                Haldi.objects.create(lead=lead, **haldi_data)
+
+        if 'mehndis' in validated_data:
+            mehndis_data = validated_data.pop('mehndis')
+            for mehndi_data in mehndis_data:
+                Mehndi.objects.create(lead=lead, **mehndi_data)
+
+        if 'receptions' in validated_data:
+            receptions_data = validated_data.pop('receptions')
+            for reception_data in receptions_data:
+                Reception.objects.create(lead=lead, **reception_data)
+
+        if 'rooms' in validated_data:
+            rooms_data = validated_data.pop('rooms')
+            for room_data in rooms_data:
+                Rooms.objects.create(lead=lead, **room_data)
 
     def validate(self, data):
         if not self.instance and 'sales_person' not in self.context:
@@ -133,10 +169,6 @@ class LeadSerializer(serializers.ModelSerializer):
         return data
 
 class LeadListSerializer(serializers.ModelSerializer):
-    sales_person = UserSerializer(read_only=True)
-    venue_id = serializers.CharField(source='venue_id.venue_id')  # Assuming venue_id is a string
-    location_id = serializers.CharField(source='location_id.loc_id')  # Assuming loc_id is a string
-
     class Meta:
         model = Lead
-        fields = ['lead_number', 'hostname', 'mobile', 'venue_id', 'location_id', 'lead_status', 'call_status', 'followup', 'remark', 'email', 'sales_person']
+        fields = ['lead_number', 'hostname', 'mobile', 'lead_status', 'call_status', 'followup']

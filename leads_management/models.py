@@ -40,74 +40,161 @@ class Lead(models.Model):
     location_id = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='leads')  # ForeignKey to Location
     sales_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leads')
 
-class BaseOccasion(models.Model):
-    YES_NO_NUMBER_CHOICES = [
-        ('yes', 'Yes'),
-        ('no', 'No'),
-        ('number', 'Number'),
-    ]
-    
-    date_of_function = models.DateField()
-    day = models.CharField(max_length=10)
-    
-    lunch_min_pax_type = models.CharField(max_length=6, choices=YES_NO_NUMBER_CHOICES, default='no')
-    lunch_min_pax_value = models.IntegerField(null=True, blank=True)
-    
-    hi_tea_min_pax_type = models.CharField(max_length=6, choices=YES_NO_NUMBER_CHOICES, default='no')
-    hi_tea_min_pax_value = models.IntegerField(null=True, blank=True)
-    
-    dinner_min_pax_type = models.CharField(max_length=6, choices=YES_NO_NUMBER_CHOICES, default='no')
-    dinner_min_pax_value = models.IntegerField(null=True, blank=True)
-    
-    dj_type = models.CharField(max_length=6, choices=YES_NO_NUMBER_CHOICES, default='no')
-    dj_value = models.IntegerField(null=True, blank=True)
-    
-    decor_type = models.CharField(max_length=6, choices=YES_NO_NUMBER_CHOICES, default='no')
-    decor_value = models.IntegerField(null=True, blank=True)
-    
-    liquor_type = models.CharField(max_length=6, choices=YES_NO_NUMBER_CHOICES, default='no')
-    liquor_value = models.IntegerField(null=True, blank=True)
-    
-    total = models.DecimalField(max_digits=10, decimal_places=2)
-
-    class Meta:
-        abstract = True
-
-class StandardOccasion(BaseOccasion):
+class StandardOccasion(models.Model):
     class Meta:
         abstract = True
 
 class Engagement(StandardOccasion):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='engagements')
+    date_of_function = models.DateField()
+    day = models.CharField(max_length=10)
+    lunch_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    lunch_min_pax_value = models.IntegerField(blank=True, null=True)
+    hi_tea_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    hi_tea_min_pax_value = models.IntegerField(blank=True, null=True)
+    dinner_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dinner_min_pax_value = models.IntegerField(blank=True, null=True)
+    dj_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dj_value = models.IntegerField(blank=True, null=True)
+    decor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    decor_value = models.IntegerField(blank=True, null=True)
+    liquor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    liquor_value = models.IntegerField(blank=True, null=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
 
 class Sagan(StandardOccasion):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='sagans')
+    date_of_function = models.DateField()
+    day = models.CharField(max_length=10)
+    lunch_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    lunch_min_pax_value = models.IntegerField(blank=True, null=True)
+    hi_tea_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    hi_tea_min_pax_value = models.IntegerField(blank=True, null=True)
+    dinner_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dinner_min_pax_value = models.IntegerField(blank=True, null=True)
+    dj_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dj_value = models.IntegerField(blank=True, null=True)
+    decor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    decor_value = models.IntegerField(blank=True, null=True)
+    liquor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    liquor_value = models.IntegerField(blank=True, null=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
 
 class Roka(StandardOccasion):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='rokas')
+    date_of_function = models.DateField()
+    day = models.CharField(max_length=10)
+    lunch_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    lunch_min_pax_value = models.IntegerField(blank=True, null=True)
+    hi_tea_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    hi_tea_min_pax_value = models.IntegerField(blank=True, null=True)
+    dinner_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dinner_min_pax_value = models.IntegerField(blank=True, null=True)
+    dj_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dj_value = models.IntegerField(blank=True, null=True)
+    decor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    decor_value = models.IntegerField(blank=True, null=True)
+    liquor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    liquor_value = models.IntegerField(blank=True, null=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
 
 class Haldi(StandardOccasion):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='haldis')
+    date_of_function = models.DateField()
+    day = models.CharField(max_length=10)
+    lunch_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    lunch_min_pax_value = models.IntegerField(blank=True, null=True)
+    hi_tea_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    hi_tea_min_pax_value = models.IntegerField(blank=True, null=True)
+    dinner_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dinner_min_pax_value = models.IntegerField(blank=True, null=True)
+    dj_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dj_value = models.IntegerField(blank=True, null=True)
+    decor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    decor_value = models.IntegerField(blank=True, null=True)
+    liquor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    liquor_value = models.IntegerField(blank=True, null=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
 
 class Mehndi(StandardOccasion):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='mehndis')
+    date_of_function = models.DateField()
+    day = models.CharField(max_length=10)
+    lunch_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    lunch_min_pax_value = models.IntegerField(blank=True, null=True)
+    hi_tea_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    hi_tea_min_pax_value = models.IntegerField(blank=True, null=True)
+    dinner_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dinner_min_pax_value = models.IntegerField(blank=True, null=True)
+    dj_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dj_value = models.IntegerField(blank=True, null=True)
+    decor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    decor_value = models.IntegerField(blank=True, null=True)
+    liquor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    liquor_value = models.IntegerField(blank=True, null=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
 
 class Wedding(StandardOccasion):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='weddings')
-    vedi_type = models.CharField(max_length=6, choices=BaseOccasion.YES_NO_NUMBER_CHOICES, default='no')
+    date_of_function = models.DateField()
+    day = models.CharField(max_length=10)
+    lunch_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    lunch_min_pax_value = models.IntegerField(blank=True, null=True)
+    hi_tea_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    hi_tea_min_pax_value = models.IntegerField(blank=True, null=True)
+    dinner_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dinner_min_pax_value = models.IntegerField(blank=True, null=True)
+    dj_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dj_value = models.IntegerField(blank=True, null=True)
+    decor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    decor_value = models.IntegerField(blank=True, null=True)
+    liquor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    liquor_value = models.IntegerField(blank=True, null=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    vedi_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
     vedi_value = models.IntegerField(null=True, blank=True)
 
 class Reception(StandardOccasion):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='receptions')
+    date_of_function = models.DateField()
+    day = models.CharField(max_length=10)
+    lunch_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    lunch_min_pax_value = models.IntegerField(blank=True, null=True)
+    hi_tea_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    hi_tea_min_pax_value = models.IntegerField(blank=True, null=True)
+    dinner_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dinner_min_pax_value = models.IntegerField(blank=True, null=True)
+    dj_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dj_value = models.IntegerField(blank=True, null=True)
+    decor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    decor_value = models.IntegerField(blank=True, null=True)
+    liquor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    liquor_value = models.IntegerField(blank=True, null=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
 
-class Rooms(BaseOccasion):
+class Corporate(StandardOccasion):
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='corporates')
+    date_of_function = models.DateField()
+    day = models.CharField(max_length=10)
+    lunch_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    lunch_min_pax_value = models.IntegerField(blank=True, null=True)
+    hi_tea_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    hi_tea_min_pax_value = models.IntegerField(blank=True, null=True)
+    dinner_min_pax_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dinner_min_pax_value = models.IntegerField(blank=True, null=True)
+    dj_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    dj_value = models.IntegerField(blank=True, null=True)
+    decor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    decor_value = models.IntegerField(blank=True, null=True)
+    liquor_type = models.CharField(max_length=6, choices=[('yes', 'Yes'), ('no', 'No'), ('number', 'Number')], default='no')
+    liquor_value = models.IntegerField(blank=True, null=True)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+
+class Rooms(StandardOccasion):
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='rooms')
     number_of_pax = models.IntegerField()
     number_of_rooms = models.IntegerField()
     plan = models.CharField(max_length=255)
-
-class Corporate(StandardOccasion):
-    vedi_type = models.CharField(max_length=6, choices=BaseOccasion.YES_NO_NUMBER_CHOICES, default='no')
-    vedi_value = models.IntegerField(null=True, blank=True)
 
 class Visit(models.Model):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='visits')

@@ -45,10 +45,6 @@ class LeadCreateView(generics.CreateAPIView):
         serializer.save(sales_person=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        print("here")
-        print(request.data)        
-        print("here2")
-
         serializer = self.get_serializer(data=request.data, context={'sales_person': request.user})
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -90,3 +86,4 @@ class LeadDetailView(generics.RetrieveUpdateAPIView):
 
     def perform_update(self, serializer):
         serializer.save()
+
