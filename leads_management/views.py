@@ -87,6 +87,7 @@ class LeadDetailView(generics.RetrieveUpdateAPIView):
     def perform_update(self, serializer):
         serializer.save()
 
+
     def delete(self, request, *args, **kwargs):
         # Check if the user is a location admin
         if request.user.role not in ['location-admin', 'super-admin']:
