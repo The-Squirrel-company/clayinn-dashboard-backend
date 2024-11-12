@@ -1,5 +1,4 @@
 from django.db import models
-from venue_management.models import Venue
 from user_management.models import User
 from location_management.models import Location
 
@@ -31,7 +30,6 @@ class Lead(models.Model):
     lead_entry_date = models.DateTimeField(auto_now_add=True)
     hostname = models.CharField(max_length=255)
     mobile = models.CharField(max_length=15)
-    venue_id = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name='leads')
     lead_status = models.CharField(max_length=20, choices=LEAD_STATUS_CHOICES, default='untouched')
     call_status = models.CharField(max_length=20, choices=CALL_STATUS_CHOICES, default='not_yet_call')
     followup = models.DateField(null=True, blank=True)

@@ -28,7 +28,11 @@ class LeadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lead
-        fields = '__all__'
+        fields = [
+            'lead_number', 'lead_entry_date', 'hostname', 'mobile',
+            'lead_status', 'call_status', 'followup', 'email',
+            'location_id', 'sales_person', 'occasions'
+        ]
         read_only_fields = ['lead_number', 'lead_entry_date']
 
     def create(self, validated_data):
