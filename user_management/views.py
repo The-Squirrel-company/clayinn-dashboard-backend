@@ -121,6 +121,9 @@ class SalesPersonDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class RegisterSuperAdmin(APIView):
+    permission_classes = []  # Remove default authentication
+    authentication_classes = []  # Remove default authentication
+
     def post(self, request):
         # Hardcoded super admin details
         super_admin_data = {

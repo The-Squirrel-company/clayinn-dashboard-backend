@@ -89,7 +89,7 @@ WSGI_APPLICATION = 'clayinn_backend.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://clayinn_user:hHTnELNMhKYqOt3O48GAr2J0wHI5xCSq@dpg-cs6l85d6l47c73fhe89g-a.oregon-postgres.render.com/clayinn',
+        default='postgresql://clayinn_f6pk_user:oDhUjSDqUErfHBhoQXzoA7LNy6Ved7do@dpg-csrk9km8ii6s73b7t8lg-a.oregon-postgres.render.com/clayinn_f6pk',
         conn_max_age=600
     )
 }
