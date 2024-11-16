@@ -23,5 +23,6 @@ urlpatterns = [
     path('location-management/', include('location_management.urls')),
     path('venue-management/', include('venue_management.urls')),
     path('leads-management/', include('leads_management.urls')),
-    path('bookings-management/', include('bookings_management.urls'))
+    path('bookings-management/', include('bookings_management.urls')),
+    path('master-calender-management/', include('master_calender_management.urls'))
 ]
