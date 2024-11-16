@@ -119,21 +119,23 @@ class VenueDetailView(APIView):
             for booking in bookings:
                 date_str = str(booking.event_date)
                 
-                # Initialize the date entry if it doesn't exist
                 if date_str not in calendar_data:
                     calendar_data[date_str] = {
                         "afternoon": None,
                         "evening": None
                     }
                 
-                # Add booking information
-                calendar_data[date_str][booking.slot] = f"Booked by {booking.lead.hostname}"
+                calendar_data[date_str][booking.slot] = {
+                    "status": f"Booked by {booking.lead.hostname}",
+                    "bg_color": venue.bg_color
+                }
 
             response_data = {
                 "venue_details": {
                     "venue_id": venue.venue_id,
                     "name": venue.name,
-                    "location": venue.location.name
+                    "location": venue.location.name,
+                    "bg_color": venue.bg_color
                 },
                 "bookings": calendar_data
             }

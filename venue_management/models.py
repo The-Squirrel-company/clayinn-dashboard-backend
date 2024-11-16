@@ -9,6 +9,7 @@ class Venue(models.Model):
     venue_id = models.CharField(max_length=25, primary_key=True, default=generate_venue_id, editable=False)
     name = models.CharField(max_length=255)
     location = models.ForeignKey('location_management.Location', on_delete=models.CASCADE, related_name='venues')
+    bg_color = models.CharField(max_length=50, default="#FFFFFF")
 
     def __str__(self):
         return f"{self.name} ({self.venue_id}) - {self.location.name}"
