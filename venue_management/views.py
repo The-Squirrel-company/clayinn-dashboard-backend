@@ -6,6 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Venue
 from location_management.models import Location
 from .serializers import VenueSerializer
+from bookings_management.models import Booking
+from datetime import datetime
+from django.db.models import Q
+from calendar import monthrange
 
 class AdminPermission(IsAuthenticated):
     def has_permission(self, request, view):
@@ -76,3 +80,73 @@ class VenueDetail(APIView):
 
         venue.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class VenueDetailView(APIView):
+    def get(self, request, venue_id):
+        try:
+            year = request.query_params.get('year')
+            month = request.query_params.get('month')
+
+            if not year or not month:
+                return Response(
+                    {"error": "Both year and month parameters are required"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            try:
+                year = int(year)
+                month = int(month)
+                if not (1 <= month <= 12):
+                    raise ValueError("Month must be between 1 and 12")
+            except ValueError as e:
+                return Response(
+                    {"error": str(e)},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            venue = Venue.objects.get(venue_id=venue_id)
+            
+            # Get bookings for specified month
+            bookings = Booking.objects.filter(
+                venue=venue,
+                event_date__year=year,
+                event_date__month=month
+            ).select_related('lead').order_by('event_date')
+
+            # Create calendar data only for booked dates
+            calendar_data = {}
+            
+            for booking in bookings:
+                date_str = str(booking.event_date)
+                
+                # Initialize the date entry if it doesn't exist
+                if date_str not in calendar_data:
+                    calendar_data[date_str] = {
+                        "afternoon": None,
+                        "evening": None
+                    }
+                
+                # Add booking information
+                calendar_data[date_str][booking.slot] = f"Booked by {booking.lead.hostname}"
+
+            response_data = {
+                "venue_details": {
+                    "venue_id": venue.venue_id,
+                    "name": venue.name,
+                    "location": venue.location.name
+                },
+                "bookings": calendar_data
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except Venue.DoesNotExist:
+            return Response(
+                {"error": "Venue not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
