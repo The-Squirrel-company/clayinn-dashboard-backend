@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'venue_management',
     'leads_management',
     'bookings_management',
-    'master_calender_management'
+    'master_calender_management',
+    'dashboard_management'
 ]
 
 MIDDLEWARE = [
