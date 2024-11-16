@@ -4,7 +4,7 @@ from .models import Lead, Occasion
 class OccasionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Occasion
-        exclude = ['lead', 'booking']
+        exclude = ['lead']
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

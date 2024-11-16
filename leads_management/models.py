@@ -51,9 +51,8 @@ class Occasion(models.Model):
     ]
 
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='occasions')
-    booking = models.ForeignKey('bookings_management.Booking', on_delete=models.SET_NULL, null=True, blank=True, related_name='occasions')
     occasion_type = models.CharField(max_length=20, choices=OCCASION_TYPES)
-    date_of_function = models.DateField(null=True, blank=True)
+    date_of_function = models.DateField()
     day = models.CharField(max_length=10, blank=True)
     
     # Fields for regular occasions

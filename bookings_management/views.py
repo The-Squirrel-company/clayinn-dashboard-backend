@@ -1,116 +1,142 @@
-from rest_framework import generics, permissions, status
+from rest_framework import generics, status
+from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 from .models import Booking
-from .serializers import BookingSerializer
-
-# Create your views here.
-
-class BookingListView(generics.ListAPIView):
-    """
-    Get all bookings in a location
-    """
-    serializer_class = BookingSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        if user.role == 'super-admin':
-            return Booking.objects.all()
-        elif user.role == 'location-admin':
-            return Booking.objects.filter(location=user.loc_id)
-        elif user.role == 'sales-person':
-            return Booking.objects.filter(sales_person=user)
-        return Booking.objects.none()
+from .serializers import BookingSerializer, BookingDetailSerializer, BookingCreateSerializer
+from django.db.models import Q
+from datetime import datetime
 
 class BookingCreateView(generics.CreateAPIView):
-    """
-    Create new booking
-    """
-    serializer_class = BookingSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(
-            sales_person=self.request.user,
-            location=self.request.user.loc_id
-        )
+    queryset = Booking.objects.all()
+    serializer_class = BookingCreateSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
+        serializer.is_valid(raise_exception=True)
+        
+        # Get the requested venue, date and slot
+        venue = serializer.validated_data['venue']
+        event_date = serializer.validated_data['event_date']
+        requested_slot = serializer.validated_data['slot']
+
+        # Check only for the specific slot requested
+        existing_booking = Booking.objects.filter(
+            venue=venue,
+            event_date=event_date,
+            slot=requested_slot
+        ).first()
+        
+        if existing_booking:
+            return Response(
+                {
+                    "error": f"This venue is already booked for {requested_slot} on {event_date}",
+                    "booked_by": existing_booking.lead.name
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        booking = serializer.save()
+        return Response(
+            BookingDetailSerializer(booking).data,
+            status=status.HTTP_201_CREATED
+        )
+
+class BookingListView(generics.ListAPIView):
+    serializer_class = BookingDetailSerializer
+
+    def get_queryset(self):
+        location_id = self.kwargs.get('location_id')
+        return Booking.objects.filter(location_id=location_id)
+
+class BookingDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Booking.objects.all()
+    serializer_class = BookingDetailSerializer
+    lookup_field = 'booking_number'
+    lookup_url_kwarg = 'booking_number'
+
+class BookingSearchView(APIView):
+    def get(self, request):
+        query = request.query_params.get('q', '')
+        date = request.query_params.get('date')
+        venue = request.query_params.get('venue')
+        
+        bookings = Booking.objects.all()
+
+        if query:
+            bookings = bookings.filter(
+                Q(lead__name__icontains=query) |
+                Q(venue__name__icontains=query) |
+                Q(location__name__icontains=query)
+            )
+
+        if date:
             try:
-                self.perform_create(serializer)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            except Exception as e:
+                search_date = datetime.strptime(date, '%Y-%m-%d').date()
+                bookings = bookings.filter(event_date=search_date)
+            except ValueError:
                 return Response(
-                    {'error': str(e)},
+                    {"error": "Invalid date format. Use YYYY-MM-DD"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class BookingDetailView(generics.RetrieveAPIView):
-    """
-    Get booking details using booking_number
-    """
-    serializer_class = BookingSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    lookup_field = 'booking_number'
+        if venue:
+            bookings = bookings.filter(venue_id=venue)
 
-    def get_queryset(self):
-        user = self.request.user
-        if user.role == 'super-admin':
-            return Booking.objects.all()
-        elif user.role == 'location-admin':
-            return Booking.objects.filter(location=user.loc_id)
-        elif user.role == 'sales-person':
-            return Booking.objects.filter(sales_person=user)
-        return Booking.objects.none()
+        serializer = BookingDetailSerializer(bookings, many=True)
+        return Response(serializer.data)
 
-class BookingUpdateView(generics.UpdateAPIView):
-    """
-    Edit booking (sales person can't edit)
-    """
-    serializer_class = BookingSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    lookup_field = 'booking_number'
+class BookingAvailabilityView(APIView):
+    def get(self, request):
+        date = request.query_params.get('date')
+        venue = request.query_params.get('venue_id')
 
-    def get_queryset(self):
-        user = self.request.user
-        if user.role == 'super-admin':
-            return Booking.objects.all()
-        elif user.role == 'location-admin':
-            return Booking.objects.filter(location=user.loc_id)
-        return Booking.objects.none()
-
-    def update(self, request, *args, **kwargs):
-        if request.user.role == 'sales-person':
+        if not date or not venue:
             return Response(
-                {"detail": "Sales persons are not allowed to edit bookings."},
-                status=status.HTTP_403_FORBIDDEN
+                {"error": "Both date and venue_id parameters are required"},
+                status=status.HTTP_400_BAD_REQUEST
             )
-        return super().update(request, *args, **kwargs)
 
-class BookingDeleteView(generics.DestroyAPIView):
-    """
-    Delete booking (sales person can't delete)
-    """
-    serializer_class = BookingSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    lookup_field = 'booking_number'
+        try:
+            search_date = datetime.strptime(date, '%Y-%m-%d').date()
+            
+            # Get existing bookings for this date and venue
+            existing_bookings = Booking.objects.filter(
+                venue_id=venue,
+                event_date=search_date
+            ).select_related('lead')
 
-    def get_queryset(self):
-        user = self.request.user
-        if user.role == 'super-admin':
-            return Booking.objects.all()
-        elif user.role == 'location-admin':
-            return Booking.objects.filter(location=user.loc_id)
-        return Booking.objects.none()
+            # Initialize availability dict
+            availability = {
+                'afternoon': {'available': True, 'booked_by': None},
+                'evening': {'available': True, 'booked_by': None}
+            }
+            
+            # Update booked slots
+            for booking in existing_bookings:
+                availability[booking.slot] = {
+                    'available': False,
+                    'booked_by': booking.lead.name,
+                    'booking_number': booking.booking_number
+                }
 
-    def destroy(self, request, *args, **kwargs):
-        if request.user.role == 'sales-person':
+            return Response({
+                "date": date,
+                "venue_id": venue,
+                "slots": {
+                    "afternoon": {
+                        "name": "Afternoon",
+                        "status": availability['afternoon']
+                    },
+                    "evening": {
+                        "name": "Evening",
+                        "status": availability['evening']
+                    }
+                },
+                "message": "A venue can be booked for both afternoon and evening slots"
+            })
+
+        except ValueError:
             return Response(
-                {"detail": "Sales persons are not allowed to delete bookings."},
-                status=status.HTTP_403_FORBIDDEN
+                {"error": "Invalid date format. Use YYYY-MM-DD"},
+                status=status.HTTP_400_BAD_REQUEST
             )
-        return super().destroy(request, *args, **kwargs)
