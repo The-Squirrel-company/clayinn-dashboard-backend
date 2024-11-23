@@ -51,10 +51,4 @@ class BookingCreateSerializer(serializers.ModelSerializer):
                 "error": "This venue is already booked for the given date and slot"
             })
 
-        # Validate that event_date matches occasion's date_of_function
-        if data['occasion'].date_of_function != data['event_date']:
-            raise serializers.ValidationError({
-                "error": "Booking date must match the occasion's function date"
-            })
-
         return data
