@@ -49,26 +49,47 @@ class LeadSerializer(serializers.ModelSerializer):
         return lead
 
     def update(self, instance, validated_data):
-        # Remove hostname and mobile from validated_data if not provided
-        validated_data.pop('hostname', None)
-        validated_data.pop('mobile', None)
+        # Update basic fields if provided
+        for field in ['hostname', 'mobile', 'email', 'lead_status', 
+                     'call_status', 'followup', 'location_id', 'sales_person']:
+            if field in validated_data:
+                setattr(instance, field, validated_data[field])
         
-        occasions_data = validated_data.pop('occasions', None)
-        
-        # Update lead instance
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        # Update occasions if provided
-        if occasions_data is not None:
-            # Only delete occasions that are not linked to any bookings
-            for occasion in instance.occasions.all():
-                if not occasion.bookings.exists():
-                    occasion.delete()
+        # Handle occasions update if provided
+        if 'occasions' in validated_data:
+            new_occasions_data = validated_data.pop('occasions')
+            existing_occasions = instance.occasions.all()
             
-            # Create or update occasions
-            for occasion_data in occasions_data:
-                Occasion.objects.create(lead=instance, **occasion_data)
-
+            # Create a set of occasion IDs from the request data
+            new_occasion_ids = {occ.get('id') for occ in new_occasions_data if 'id' in occ}
+            
+            # Check for occasions that would be deleted
+            for existing_occasion in existing_occasions:
+                if existing_occasion.id not in new_occasion_ids:
+                    # Check if occasion is linked to any bookings
+                    if existing_occasion.bookings.exists():
+                        raise serializers.ValidationError({
+                            "error": f"Cannot delete occasion '{existing_occasion.occasion_type}' "
+                                   f"for date {existing_occasion.date_of_function} "
+                                   f"as it is linked to a booking."
+                        })
+                    else:
+                        existing_occasion.delete()
+            
+            # Update or create occasions
+            for occasion_data in new_occasions_data:
+                occasion_id = occasion_data.get('id')
+                if occasion_id:
+                    # Update existing occasion
+                    occasion = instance.occasions.filter(id=occasion_id).first()
+                    if occasion:
+                        for key, value in occasion_data.items():
+                            if key != 'id':
+                                setattr(occasion, key, value)
+                        occasion.save()
+                else:
+                    # Create new occasion
+                    Occasion.objects.create(lead=instance, **occasion_data)
+        
+        instance.save()
         return instance
