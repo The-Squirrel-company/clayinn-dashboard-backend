@@ -60,13 +60,18 @@ class LeadSerializer(serializers.ModelSerializer):
             new_occasions_data = validated_data.pop('occasions')
             existing_occasions = instance.occasions.all()
             
-            # Create a set of occasion IDs from the request data
-            new_occasion_ids = {occ.get('id') for occ in new_occasions_data if 'id' in occ}
-            
-            # Check for occasions that would be deleted
+            # Match occasions based on occasion_type and date_of_function instead of ID
             for existing_occasion in existing_occasions:
-                if existing_occasion.id not in new_occasion_ids:
-                    # Check if occasion is linked to any bookings
+                # Find matching occasion in new data
+                matching_occasion = next(
+                    (occ for occ in new_occasions_data 
+                     if occ.get('occasion_type') == existing_occasion.occasion_type 
+                     and str(occ.get('date_of_function')) == str(existing_occasion.date_of_function)),
+                    None
+                )
+                
+                if not matching_occasion:
+                    # If no match found and occasion has bookings, raise error
                     if existing_occasion.bookings.exists():
                         raise serializers.ValidationError({
                             "error": f"Cannot delete occasion '{existing_occasion.occasion_type}' "
@@ -75,21 +80,17 @@ class LeadSerializer(serializers.ModelSerializer):
                         })
                     else:
                         existing_occasion.delete()
-            
-            # Update or create occasions
-            for occasion_data in new_occasions_data:
-                occasion_id = occasion_data.get('id')
-                if occasion_id:
-                    # Update existing occasion
-                    occasion = instance.occasions.filter(id=occasion_id).first()
-                    if occasion:
-                        for key, value in occasion_data.items():
-                            if key != 'id':
-                                setattr(occasion, key, value)
-                        occasion.save()
                 else:
-                    # Create new occasion
-                    Occasion.objects.create(lead=instance, **occasion_data)
+                    # Update existing occasion
+                    for key, value in matching_occasion.items():
+                        setattr(existing_occasion, key, value)
+                    existing_occasion.save()
+                    # Remove from new_occasions_data to mark as processed
+                    new_occasions_data.remove(matching_occasion)
+            
+            # Create any remaining new occasions
+            for occasion_data in new_occasions_data:
+                Occasion.objects.create(lead=instance, **occasion_data)
         
         instance.save()
         return instance
