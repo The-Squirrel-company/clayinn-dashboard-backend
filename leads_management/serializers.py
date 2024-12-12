@@ -34,6 +34,10 @@ class LeadSerializer(serializers.ModelSerializer):
             'location_id', 'sales_person', 'occasions'
         ]
         read_only_fields = ['lead_number', 'lead_entry_date']
+        extra_kwargs = {
+            'hostname': {'required': True},  # Required for creation
+            'mobile': {'required': True},    # Required for creation
+        }
 
     def create(self, validated_data):
         occasions_data = validated_data.pop('occasions', [])
@@ -45,6 +49,10 @@ class LeadSerializer(serializers.ModelSerializer):
         return lead
 
     def update(self, instance, validated_data):
+        # Remove hostname and mobile from validated_data if not provided
+        validated_data.pop('hostname', None)
+        validated_data.pop('mobile', None)
+        
         occasions_data = validated_data.pop('occasions', None)
         
         # Update lead instance
@@ -54,9 +62,12 @@ class LeadSerializer(serializers.ModelSerializer):
 
         # Update occasions if provided
         if occasions_data is not None:
-            # Remove existing occasions
-            instance.occasions.all().delete()
-            # Create new occasions
+            # Only delete occasions that are not linked to any bookings
+            for occasion in instance.occasions.all():
+                if not occasion.bookings.exists():
+                    occasion.delete()
+            
+            # Create or update occasions
             for occasion_data in occasions_data:
                 Occasion.objects.create(lead=instance, **occasion_data)
 
