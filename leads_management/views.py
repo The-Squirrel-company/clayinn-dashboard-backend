@@ -9,7 +9,7 @@ from location_management.models import Location
 # Create your views here.
 
 class LeadPagination(PageNumberPagination):
-    page_size = 25
+    page_size = 100
     page_size_query_param = 'page_size'
     max_page_size = 100
 
@@ -21,9 +21,11 @@ class LeadListView(generics.ListAPIView):
     def get_queryset(self):
         location_id = self.kwargs.get('location_id')
         user = self.request.user
-
+        
+        # Start with base queryset
         queryset = Lead.objects.all()
         
+        # Apply location and role-based filtering
         if user.role == 'super-admin':
             if location_id:
                 queryset = queryset.filter(location_id=location_id)
@@ -33,6 +35,20 @@ class LeadListView(generics.ListAPIView):
             queryset = queryset.filter(sales_person=user)
         else:
             queryset = Lead.objects.none()
+
+        # Filter by lead status if provided
+        lead_status = self.request.query_params.get('status')
+        if lead_status:
+            queryset = queryset.filter(lead_status=lead_status)
+
+        # Filter by date range if provided
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+        
+        if start_date:
+            queryset = queryset.filter(lead_entry_date__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(lead_entry_date__lte=end_date)
 
         return queryset
 

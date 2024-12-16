@@ -5,6 +5,7 @@ from .models import Booking
 from .serializers import BookingSerializer, BookingDetailSerializer, BookingCreateSerializer
 from django.db.models import Q
 from datetime import datetime
+from leads_management.views import LeadPagination
 
 class BookingCreateView(generics.CreateAPIView):
     queryset = Booking.objects.all()
@@ -43,10 +44,23 @@ class BookingCreateView(generics.CreateAPIView):
 
 class BookingListView(generics.ListAPIView):
     serializer_class = BookingDetailSerializer
+    pagination_class = LeadPagination
 
     def get_queryset(self):
         location_id = self.kwargs.get('location_id')
-        return Booking.objects.filter(location_id=location_id)
+        queryset = Booking.objects.filter(location_id=location_id)
+
+        # Filter by lead status if provided
+        lead_status = self.request.query_params.get('status')
+        if lead_status:
+            queryset = queryset.filter(lead__lead_status=lead_status)
+
+        # Filter by venue if provided
+        venue_id = self.request.query_params.get('venue')
+        if venue_id:
+            queryset = queryset.filter(venue_id=venue_id)
+
+        return queryset
 
 class BookingDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Booking.objects.all()

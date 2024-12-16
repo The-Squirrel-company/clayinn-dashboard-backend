@@ -91,7 +91,7 @@ WSGI_APPLICATION = 'clayinn_backend.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://clayinn_f6pk_user:oDhUjSDqUErfHBhoQXzoA7LNy6Ved7do@dpg-csrk9km8ii6s73b7t8lg-a.oregon-postgres.render.com/clayinn_f6pk',
+        default='postgresql://neondb_owner:4CHEh6ezbKlg@ep-little-shadow-a5ozju9c.us-east-2.aws.neon.tech/neondb?sslmode=require',
         conn_max_age=600
     )
 }
