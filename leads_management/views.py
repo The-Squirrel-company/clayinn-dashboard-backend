@@ -41,15 +41,10 @@ class LeadListView(generics.ListAPIView):
         if lead_status:
             queryset = queryset.filter(lead_status=lead_status)
 
-        # Filter by date range if provided
-        start_date = self.request.query_params.get('start_date')
-        end_date = self.request.query_params.get('end_date')
-        
-        if start_date:
-            queryset = queryset.filter(lead_entry_date__gte=start_date)
-        if end_date:
-            queryset = queryset.filter(lead_entry_date__lte=end_date)
-
+        # Filter by lead number if provided
+        lead_number = self.request.query_params.get('lead_number')
+        if lead_number:
+            queryset = queryset.filter(lead_number=lead_number)
         return queryset
 
 class LeadCreateView(generics.CreateAPIView):

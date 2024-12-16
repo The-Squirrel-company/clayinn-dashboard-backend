@@ -37,6 +37,12 @@ class BookingCreateView(generics.CreateAPIView):
             )
         
         booking = serializer.save()
+
+        # Change the lead status to 'closed-won'
+        lead = booking.lead
+        lead.lead_status = 'closed-won'
+        lead.save()
+
         return Response(
             BookingDetailSerializer(booking).data,
             status=status.HTTP_201_CREATED
@@ -50,15 +56,25 @@ class BookingListView(generics.ListAPIView):
         location_id = self.kwargs.get('location_id')
         queryset = Booking.objects.filter(location_id=location_id)
 
-        # Filter by lead status if provided
-        lead_status = self.request.query_params.get('status')
-        if lead_status:
-            queryset = queryset.filter(lead__lead_status=lead_status)
-
         # Filter by venue if provided
         venue_id = self.request.query_params.get('venue')
         if venue_id:
             queryset = queryset.filter(venue_id=venue_id)
+
+        # Filter by booking number if provided
+        booking_number = self.request.query_params.get('booking_number')
+        if booking_number:
+            queryset = queryset.filter(booking_number=booking_number)
+
+        # Filter by start date if provided
+        start_date = self.request.query_params.get('start_date')
+        if start_date:
+            queryset = queryset.filter(event_date__gte=start_date)
+
+        # Filter by end date if provided
+        end_date = self.request.query_params.get('end_date')
+        if end_date:
+            queryset = queryset.filter(event_date__lte=end_date)
 
         return queryset
 
