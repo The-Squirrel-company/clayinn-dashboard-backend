@@ -40,7 +40,7 @@ class BookingCreateView(generics.CreateAPIView):
 
         # Change the lead status to 'closed-won'
         lead = booking.lead
-        lead.lead_status = 'closed-won'
+        lead.lead_status = 'closed_won'
         lead.save()
 
         return Response(
