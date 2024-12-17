@@ -85,7 +85,7 @@ class LeadDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         
         # Check if the lead status is already 'closed-won'
-        if instance.lead_status == 'closed-won' and request.user.role == 'sales-person':
+        if instance.lead_status == 'closed_won' and request.user.role == 'sales-person':
             return Response(
                 {"detail": "Sales person cannot update a closed-won lead."},
                 status=status.HTTP_403_FORBIDDEN
