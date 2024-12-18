@@ -23,7 +23,7 @@ class LeadListView(generics.ListAPIView):
         user = self.request.user
         
         # Start with base queryset
-        queryset = Lead.objects.all()
+        queryset = Lead.objects.all().order_by('-lead_entry_date')
         
         # Apply location and role-based filtering
         if user.role == 'super-admin':
@@ -45,6 +45,7 @@ class LeadListView(generics.ListAPIView):
         lead_number = self.request.query_params.get('lead_number')
         if lead_number:
             queryset = queryset.filter(lead_number=lead_number)
+            
         return queryset
 
 class LeadCreateView(generics.CreateAPIView):
