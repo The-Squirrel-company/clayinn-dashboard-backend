@@ -28,6 +28,10 @@ class LocationManagement(APIView):
         if not all([name, address, admin_name, admin_email, admin_password]):
             return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Check if a user with the given email already exists
+        if User.objects.filter(email=admin_email).exists():
+            return Response({'error': 'A user with this email already exists, location cannot be created'}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             # Create the location first
             location = Location(name=name, address=address)
