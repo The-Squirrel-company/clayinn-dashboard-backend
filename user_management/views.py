@@ -46,6 +46,7 @@ class TokenObtainSerializer(TokenObtainPairSerializer):
         token["email"] = user.email
         token['role'] = user.role
         token['loc_id'] = user.loc_id.loc_id if user.loc_id else None  # Add loc_id to the token
+        token['loc_address'] = user.loc_id.address if user.loc_id else None  # Add location address to the token
         return token
 
 class TokenView(TokenObtainPairView):
