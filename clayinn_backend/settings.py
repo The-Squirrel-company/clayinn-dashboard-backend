@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-&nszy$%(6o4o(8n0y26kt7u36$eklqpr+#lsk(5wf%^1xlru7t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = 'RENDER' not in os.environ
 
-ALLOWED_HOSTS = ['clayinn-dashboard-backend.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['clayinn-dashboard-backend.onrender.com', 'localhost', '127.0.0.1', 'backend.clayinnhotel.com']
 
 
 # Application definition
