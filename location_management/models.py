@@ -10,8 +10,8 @@ def generate_location_id(name):
     return f"{cleaned_name}-{unique_suffix}"  # Combine name and unique suffix
 
 class Location(models.Model):
-    loc_id = models.CharField(max_length=25, primary_key=True, editable=False)
-    name = models.CharField(max_length=255)
+    loc_id = models.CharField(max_length=100, primary_key=True, editable=False) 
+    name = models.CharField(max_length=510) 
     address = models.TextField()
 
     def save(self, *args, **kwargs):

@@ -3,6 +3,9 @@ from venue_management.models import Venue
 from location_management.models import Location
 from user_management.models import User
 from leads_management.models import Lead, Occasion
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+from django.utils import timezone
 
 class Booking(models.Model):
     SLOT_CHOICES = [
@@ -52,3 +55,11 @@ class Booking(models.Model):
             slot=self.slot
         ).exclude(booking_number=self.booking_number).exists():
             raise ValidationError('This venue is already booked for the specified date and slot')
+
+@receiver(post_delete, sender=Booking)
+def update_lead_status_after_booking_delete(sender, instance, **kwargs):
+    lead = instance.lead
+    # Check if lead has any remaining bookings
+    if not lead.bookings.exists():
+        lead.lead_status = 'untouched'
+        lead.save()

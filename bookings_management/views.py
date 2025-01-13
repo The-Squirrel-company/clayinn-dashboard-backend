@@ -6,6 +6,8 @@ from .serializers import BookingSerializer, BookingDetailSerializer, BookingCrea
 from django.db.models import Q
 from datetime import datetime
 from leads_management.views import LeadPagination
+from django.utils import timezone
+from rest_framework.exceptions import PermissionDenied
 
 class BookingCreateView(generics.CreateAPIView):
     queryset = Booking.objects.all()
@@ -83,6 +85,15 @@ class BookingDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = BookingDetailSerializer
     lookup_field = 'booking_number'
     lookup_url_kwarg = 'booking_number'
+
+    def destroy(self, request, *args, **kwargs):
+        booking = self.get_object()
+        
+        # Check if booking is in the past
+        if booking.event_date < timezone.now().date():
+            raise PermissionDenied(detail="Past bookings cannot be deleted")
+
+        return super().destroy(request, *args, **kwargs)
 
 class BookingSearchView(APIView):
     def get(self, request):

@@ -24,19 +24,34 @@ class TokenObtainSerializer(TokenObtainPairSerializer):
         email = attrs.get('email')
         password = attrs.get('password')
         
-        if email and password:
-            user = User.objects.filter(email=email).first()
-            if user and user.check_password(password):
-                refresh = self.get_token(user)
-                data = {
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                }
-                return data
-            else:
-                raise serializers.ValidationError('No active account found with the given credentials')
-        else:
+        if not email or not password:
             raise serializers.ValidationError('Must include "email" and "password".')
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError('No active account found with the given credentials')
+
+        if not user.check_password(password):
+            raise serializers.ValidationError('No active account found with the given credentials')
+
+        if not user.is_active:
+            raise serializers.ValidationError('This account is inactive')
+
+        refresh = self.get_token(user)
+        data = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user': {
+                'user_id': user.user_id,
+                'name': user.name,
+                'email': user.email,
+                'role': user.role,
+                'loc_id': user.loc_id.loc_id if user.loc_id else None,
+                'mobile': user.mobile
+            }
+        }
+        return data
 
     @classmethod
     def get_token(cls, user):
@@ -66,13 +81,28 @@ class SalesPersonManagement(APIView):
             return Response({'error': 'Location not found'}, status=status.HTTP_404_NOT_FOUND)
 
         if request.user.role == 'location-admin' and request.user.loc_id != location:
-            return Response({'error': 'You do not have permission to add sales persons to this location'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'error': 'You do not have permission to add sales persons to this location'}, 
+                          status=status.HTTP_403_FORBIDDEN)
 
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(role='sales-person', loc_id=location)
+        # Ensure password is provided in request
+        if 'password' not in request.data:
+            return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Create user with create_user method
+            user = User.objects.create_user(
+                email=request.data['email'],
+                name=request.data['name'],
+                password=request.data['password'],
+                role='sales-person',
+                loc_id=location,
+                mobile=request.data.get('mobile')
+            )
+            
+            serializer = UserSerializer(user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, loc_id):
         try:
