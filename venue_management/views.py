@@ -15,8 +15,15 @@ class AdminPermission(IsAuthenticated):
     def has_permission(self, request, view):
         return super().has_permission(request, view) and request.user.role in ['super-admin', 'location-admin']
 
+class SalesPermission(IsAuthenticated):
+    def has_permission(self, request, view):
+        return super().has_permission(request, view) and request.user.role in ['super-admin', 'location-admin', 'sales']
+
 class VenueManagement(APIView):
-    permission_classes = [AdminPermission]
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [SalesPermission()]
+        return [AdminPermission()]
 
     def get(self, request, loc_id):
         try:
@@ -47,7 +54,10 @@ class VenueManagement(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class VenueDetail(APIView):
-    permission_classes = [AdminPermission]
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [SalesPermission()]
+        return [AdminPermission()]
 
     def get_object(self, loc_id, venue_id):
         try:
@@ -82,6 +92,8 @@ class VenueDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class VenueDetailView(APIView):
+    permission_classes = [SalesPermission]
+
     def get(self, request, venue_id):
         try:
             year = request.query_params.get('year')
