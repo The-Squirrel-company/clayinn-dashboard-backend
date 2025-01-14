@@ -11,53 +11,56 @@ from datetime import datetime
 from django.db.models import Q
 from calendar import monthrange
 
-class AdminPermission(IsAuthenticated):
-    def has_permission(self, request, view):
-        return super().has_permission(request, view) and request.user.role in ['super-admin', 'location-admin']
-
-class SalesPermission(IsAuthenticated):
-    def has_permission(self, request, view):
-        return super().has_permission(request, view) and request.user.role in ['super-admin', 'location-admin', 'sales']
-
 class VenueManagement(APIView):
-    def get_permissions(self):
-        if self.request.method == 'GET':
-            return [SalesPermission()]
-        return [AdminPermission()]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, loc_id):
         try:
             location = Location.objects.get(loc_id=loc_id)
+            
+            # Check if user has permission for this location
+            if request.user.role in ['location-admin', 'sales-person']:
+                if request.user.loc_id != location:
+                    return Response(
+                        {'error': 'You do not have permission to view venues for this location'}, 
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+
+            venues = Venue.objects.filter(location=location)
+            serializer = VenueSerializer(venues, many=True)
+            return Response(serializer.data)
+
         except Location.DoesNotExist:
             return Response({'error': 'Location not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        if request.user.role == 'location-admin' and request.user != location.location_admin:
-            return Response({'error': 'You do not have permission to view venues for this location'}, status=status.HTTP_403_FORBIDDEN)
-
-        venues = Venue.objects.filter(location=location)
-        serializer = VenueSerializer(venues, many=True)
-        return Response(serializer.data)
 
     def post(self, request, loc_id):
         try:
             location = Location.objects.get(loc_id=loc_id)
+            
+            # Check if user has permission for this location
+            if request.user.role == 'location-admin':
+                if request.user.loc_id != location:
+                    return Response(
+                        {'error': 'You do not have permission to create venues for this location'}, 
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+            elif request.user.role == 'sales-person':
+                return Response(
+                    {'error': 'Sales persons cannot create venues'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            serializer = VenueSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(location=location)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         except Location.DoesNotExist:
             return Response({'error': 'Location not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        if request.user.role == 'location-admin' and request.user != location.location_admin:
-            return Response({'error': 'You do not have permission to create venues for this location'}, status=status.HTTP_403_FORBIDDEN)
-
-        serializer = VenueSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(location=location)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class VenueDetail(APIView):
-    def get_permissions(self):
-        if self.request.method == 'GET':
-            return [SalesPermission()]
-        return [AdminPermission()]
+    permission_classes = [IsAuthenticated]
 
     def get_object(self, loc_id, venue_id):
         try:
@@ -71,8 +74,18 @@ class VenueDetail(APIView):
         if not venue:
             return Response({'error': 'Venue not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        if request.user.role == 'location-admin' and request.user != venue.location.location_admin:
-            return Response({'error': 'You do not have permission to update this venue'}, status=status.HTTP_403_FORBIDDEN)
+        # Check if user has permission for this location
+        if request.user.role == 'location-admin':
+            if request.user.loc_id != venue.location:
+                return Response(
+                    {'error': 'You do not have permission to update venues for this location'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        elif request.user.role == 'sales-person':
+            return Response(
+                {'error': 'Sales persons cannot update venues'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         serializer = VenueSerializer(venue, data=request.data, partial=True)
         if serializer.is_valid():
@@ -85,17 +98,37 @@ class VenueDetail(APIView):
         if not venue:
             return Response({'error': 'Venue not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        if request.user.role == 'location-admin' and request.user != venue.location.location_admin:
-            return Response({'error': 'You do not have permission to delete this venue'}, status=status.HTTP_403_FORBIDDEN)
+        # Check if user has permission for this location
+        if request.user.role == 'location-admin':
+            if request.user.loc_id != venue.location:
+                return Response(
+                    {'error': 'You do not have permission to delete venues for this location'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        elif request.user.role == 'sales-person':
+            return Response(
+                {'error': 'Sales persons cannot delete venues'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         venue.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class VenueDetailView(APIView):
-    permission_classes = [SalesPermission]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, venue_id):
         try:
+            venue = Venue.objects.get(venue_id=venue_id)
+            
+            # Check if user has permission for this location
+            if request.user.role in ['location-admin', 'sales-person']:
+                if request.user.loc_id != venue.location:
+                    return Response(
+                        {'error': 'You do not have permission to view venues for this location'}, 
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+
             year = request.query_params.get('year')
             month = request.query_params.get('month')
 
@@ -116,8 +149,6 @@ class VenueDetailView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            venue = Venue.objects.get(venue_id=venue_id)
-            
             # Get bookings for specified month
             bookings = Booking.objects.filter(
                 venue=venue,
