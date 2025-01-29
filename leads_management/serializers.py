@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Lead, Occasion
+from user_management.serializers import UserSerializer
 
 class OccasionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,19 +26,29 @@ class OccasionSerializer(serializers.ModelSerializer):
 
 class LeadSerializer(serializers.ModelSerializer):
     occasions = OccasionSerializer(many=True, required=False)
+    sales_person_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Lead
         fields = [
             'lead_number', 'lead_entry_date', 'hostname', 'mobile',
             'lead_status', 'call_status', 'followup', 'email',
-            'location_id', 'sales_person', 'occasions'
+            'location_id', 'sales_person', 'sales_person_details', 'occasions'
         ]
         read_only_fields = ['lead_number', 'lead_entry_date']
         extra_kwargs = {
             'hostname': {'required': True},  # Required for creation
             'mobile': {'required': True},    # Required for creation
         }
+
+    def get_sales_person_details(self, obj):
+        if obj.sales_person:
+            return {
+                'name': obj.sales_person.name,
+                'email': obj.sales_person.email,
+                'mobile': obj.sales_person.mobile
+            }
+        return None
 
     def create(self, validated_data):
         occasions_data = validated_data.pop('occasions', [])
