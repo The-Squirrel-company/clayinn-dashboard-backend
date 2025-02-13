@@ -12,6 +12,7 @@ from rest_framework import permissions
 from location_management.models import Location
 from .serializers import UserSerializer
 from django.db import IntegrityError
+from rest_framework.permissions import IsAuthenticated
 
 class TestAPIView(APIView):
     def get(self, request):
@@ -181,4 +182,56 @@ class RegisterSuperAdmin(APIView):
             return Response({'error': 'A user with this email already exists'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+
+class EditProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        user = request.user
+        name = request.data.get('name')
+        mobile = request.data.get('mobile')
+
+        if not name:
+            return Response({'error': 'Name is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.name = name
+        user.mobile = mobile
+        user.save()
+
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+
+        if not current_password or not new_password:
+            return Response(
+                {'error': 'Both current_password and new_password are required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Verify current password
+        if not user.check_password(current_password):
+            return Response(
+                {'error': 'Current password is incorrect'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Set new password
+        user.set_password(new_password)
+        user.save()
+
+        return Response({'message': 'Password changed successfully'})
 

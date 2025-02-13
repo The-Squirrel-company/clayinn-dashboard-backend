@@ -10,4 +10,7 @@ urlpatterns = [
     path('locations/<str:loc_id>/sales-persons/', views.SalesPersonManagement.as_view(), name='sales_person_list'),
     path('locations/<str:loc_id>/sales-persons/<str:user_id>/', views.SalesPersonDetail.as_view(), name='sales_person_detail'),
     path('register-super-admin/', RegisterSuperAdmin.as_view(), name='register_super_admin'),
+    path('profile/', views.UserProfileView.as_view(), name='user-profile'),
+    path('profile/edit/', views.EditProfileView.as_view(), name='edit-profile'),
+    path('profile/change-password/', views.ChangePasswordView.as_view(), name='change-password'),
 ]
