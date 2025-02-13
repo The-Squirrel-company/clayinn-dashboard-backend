@@ -88,9 +88,13 @@ class LocationManagement(APIView):
 
         try:
             location.delete()
-            return Response({'message': 'Location and associated venues and users deleted successfully'}, status=status.HTTP_200_OK)
+            return Response({
+                'message': 'Location and all associated data (bookings, venues, users, leads) deleted successfully'
+            }, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({'error': f'Error deleting location: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({
+                'error': f'Error deleting location: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DeleteLocationAdmin(APIView):
     permission_classes = [IsAuthenticated]

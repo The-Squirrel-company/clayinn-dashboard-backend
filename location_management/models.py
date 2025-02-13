@@ -23,9 +23,21 @@ class Location(models.Model):
         return f"{self.name} ({self.loc_id})"
 
     def delete(self, *args, **kwargs):
-        # Delete all associated venues and users
-        self.venues.all().delete()  # Assuming you have a related_name='venues' in Venue model
-        self.users.all().delete()    # Assuming you have a related_name='users' in User model
+        # Delete all related bookings first
+        from bookings_management.models import Booking
+        Booking.objects.filter(location=self).delete()
+        
+        # Delete all related leads
+        from leads_management.models import Lead
+        Lead.objects.filter(location_id=self).delete()
+        
+        # Delete all venues
+        self.venues.all().delete()
+        
+        # Delete all users
+        self.users.all().delete()
+        
+        # Finally delete the location
         super().delete(*args, **kwargs)
 
 @receiver(pre_delete, sender=Location)
