@@ -36,6 +36,7 @@ class Lead(models.Model):
     email = models.EmailField(blank=True)
     location_id = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='leads')
     sales_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leads')
+    remark = models.TextField(blank=True, null=True)
 
 class Occasion(models.Model):
     OCCASION_TYPES = [
