@@ -13,6 +13,7 @@ from location_management.models import Location
 from .serializers import UserSerializer
 from django.db import IntegrityError
 from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.hashers import make_password
 
 class TestAPIView(APIView):
     def get(self, request):
@@ -235,3 +236,17 @@ class ChangePasswordView(APIView):
 
         return Response({'message': 'Password changed successfully'})
 
+# def reset_admin_password(new_password):
+#     try:
+#         # Get the admin user
+#         admin_user = User.objects.get(email='admin@clayinn.in')
+        
+#         # Set and hash the new password
+#         admin_user.password = make_password(new_password)
+#         admin_user.save()
+        
+#         return True, "Password updated successfully"
+#     except User.DoesNotExist:
+#         return False, "Admin user not found"
+#     except Exception as e:
+#         return False, f"Error updating password: {str(e)}"

@@ -33,7 +33,7 @@ class LeadSerializer(serializers.ModelSerializer):
         fields = [
             'lead_number', 'lead_entry_date', 'hostname', 'mobile',
             'lead_status', 'call_status', 'followup', 'email',
-            'location_id', 'sales_person', 'sales_person_details', 'occasions', 'remark'
+            'location_id', 'sales_person', 'sales_person_details', 'occasions', 'remark','lead_source'
         ]
         read_only_fields = ['lead_number', 'lead_entry_date']
         extra_kwargs = {
@@ -63,7 +63,7 @@ class LeadSerializer(serializers.ModelSerializer):
         # Update basic fields if provided
         for field in ['hostname', 'mobile', 'email', 'lead_status', 
                      'call_status', 'followup', 'location_id', 
-                     'sales_person', 'remark']:
+                     'sales_person', 'remark', 'lead_source']:
             if field in validated_data:
                 setattr(instance, field, validated_data[field])
         

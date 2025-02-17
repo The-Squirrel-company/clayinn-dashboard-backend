@@ -26,6 +26,19 @@ class Lead(models.Model):
         ('abandoned', 'Abandoned'),
     ]
 
+    LEAD_SOURCE_CHOICES = [
+        ('walk_in', 'Walk In'),
+        ('social_media', 'Social Media'),
+        ('google', 'Google'),
+        ('referral', 'Referral'),
+        ('wedding_wire', 'Wedding Wire'),
+        ('wed_me_good', 'Wed Me Good'),
+        ('venue_look', 'Venue Look'),
+        ('venue_monk', 'Venue Monk'),
+        ('sloshout', 'Sloshout'),
+        ('others', 'Others'),
+    ]
+
     lead_number = models.AutoField(primary_key=True)
     lead_entry_date = models.DateTimeField(auto_now_add=True)
     hostname = models.CharField(max_length=255)
@@ -37,6 +50,12 @@ class Lead(models.Model):
     location_id = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='leads')
     sales_person = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leads')
     remark = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    lead_source = models.CharField(
+        max_length=20, 
+        choices=LEAD_SOURCE_CHOICES, 
+        default='others'
+    )
 
 class Occasion(models.Model):
     OCCASION_TYPES = [
