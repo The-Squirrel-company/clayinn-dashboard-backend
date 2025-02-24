@@ -21,31 +21,27 @@ class LeadListView(generics.ListAPIView):
     def get_queryset(self):
         location_id = self.kwargs.get('location_id')
         user = self.request.user
-        
-        # Start with base queryset
         queryset = Lead.objects.all().order_by('-lead_entry_date')
-        
-        # Apply location and role-based filtering
-        if user.role == 'super-admin':
-            if location_id:
-                queryset = queryset.filter(location_id=location_id)
-        elif user.role == 'location-admin':
-            queryset = queryset.filter(location_id=user.loc_id)
-        elif user.role == 'sales-person':
-            queryset = queryset.filter(sales_person=user)
-        else:
-            queryset = Lead.objects.none()
 
-        # Filter by lead status if provided
+        if location_id:
+            queryset = queryset.filter(location_id=location_id)
+
+        role_based_filters = {
+            'super-admin': queryset,
+            'location-admin': queryset.filter(location_id=user.loc_id),
+            'sales-person': queryset.filter(location_id=user.loc_id)
+        }
+
+        queryset = role_based_filters.get(user.role, Lead.objects.none())
+
         lead_status = self.request.query_params.get('status')
         if lead_status:
             queryset = queryset.filter(lead_status=lead_status)
 
-        # Filter by lead number if provided
         lead_number = self.request.query_params.get('lead_number')
         if lead_number:
             queryset = queryset.filter(lead_number=lead_number)
-            
+
         return queryset
 
 class LeadCreateView(generics.CreateAPIView):
